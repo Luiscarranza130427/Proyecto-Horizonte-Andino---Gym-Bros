@@ -1,6 +1,6 @@
 <script setup>
 import { XCircle } from 'lucide-vue-next'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -22,6 +22,15 @@ const gruposMusculares = ref([])
 const cargandoGrupos = ref(true)
 const errorGrupos = ref('')
 let solicitudActual = 0
+
+/*
+ * El servicio expone el equipamiento como `equipo` (vocabulario del listado) y
+ * el formulario lo edita como `equipamiento`, que es el campo de la API. Sin
+ * esta traducción el campo aparecía vacío al editar y obligaba a cambiarlo.
+ */
+const valoresFormulario = computed(() =>
+  ejercicio.value ? { ...ejercicio.value, equipamiento: ejercicio.value.equipo } : {},
+)
 
 async function cargarGruposMusculares() {
   cargandoGrupos.value = true
@@ -126,7 +135,7 @@ onBeforeUnmount(() => {
     <EjercicioForm
       v-else-if="estado === 'success' && ejercicio"
       modo="edit"
-      :valores-iniciales="ejercicio"
+      :valores-iniciales="valoresFormulario"
       :enviando="enviando"
       :errores-servidor="erroresServidor"
       :grupos-musculares="gruposMusculares"

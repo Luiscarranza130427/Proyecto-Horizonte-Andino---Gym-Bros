@@ -67,6 +67,8 @@ Route::middleware([CheckoutJson::class])->group(function () {
 */
 Route::middleware(['sesion', 'throttle:api-sesion'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/perfil/preferencias', [\App\Http\Controllers\PreferenciasUsuarioController::class, 'show']);
+    Route::put('/perfil/preferencias', [\App\Http\Controllers\PreferenciasUsuarioController::class, 'update']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/perfil/cambiar-contrasena', [AuthController::class, 'cambiarContrasena'])->middleware('throttle:5,1');
     Route::post('/perfil/cerrar-otras-sesiones', [AuthController::class, 'cerrarOtrasSesiones']);
@@ -133,6 +135,15 @@ Route::middleware(['sesion', 'throttle:api-sesion'])->group(function () {
     });
 
     // Alimentacion
+    Route::get('/alimentos/para-elegir', [AlimentoController::class, 'index']);
+    Route::middleware('acceso:rol,Administrador,Empresa,Entrenador')->group(function () {
+        Route::get('/planes-alimentacion', [\App\Http\Controllers\PlanPanelController::class, 'index']);
+        Route::get('/planes-alimentacion/empresas', [\App\Http\Controllers\PlanPanelController::class, 'empresas']);
+        Route::get('/planes-alimentacion/{plan}', [\App\Http\Controllers\PlanPanelController::class, 'show'])->whereNumber('plan');
+        Route::post('/planes-alimentacion/{plan}/comidas', [\App\Http\Controllers\PlanPanelController::class, 'guardarComida'])->whereNumber('plan');
+        Route::put('/planes-alimentacion/{plan}/comidas/{comida}', [\App\Http\Controllers\PlanPanelController::class, 'guardarComida'])->whereNumber(['plan', 'comida']);
+        Route::delete('/planes-alimentacion/{plan}/comidas/{comida}', [\App\Http\Controllers\PlanPanelController::class, 'eliminarComida'])->whereNumber(['plan', 'comida']);
+    });
     Route::get('/alimentos', [AlimentoController::class, 'index']);
     Route::middleware('acceso:rol,Administrador')->group(function () {
         Route::post('/alimentos', [AlimentoController::class, 'store']);

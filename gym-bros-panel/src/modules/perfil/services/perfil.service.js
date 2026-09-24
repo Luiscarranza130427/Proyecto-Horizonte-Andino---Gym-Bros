@@ -51,6 +51,8 @@ export async function obtenerPerfil() {
       throw new HttpError(404, 'La empresa de tu sesión no existe en la API.')
     }
 
+    const { data: respuestaPreferencias } = await api.get('/perfil/preferencias')
+
     let totalMiembros = null
     try {
       const respUsuarios = await api.get('/usuarios')
@@ -121,14 +123,7 @@ export async function obtenerPerfil() {
       // El backend no registra las sesiones abiertas. La única que había era
       // inventada, con su IP y su navegador.
       sesiones: [],
-      preferencias: {
-        idioma: 'es',
-        tema: 'oscuro',
-        notifEmail: true,
-        notifPush: true,
-        notifPagos: true,
-        notifSeguridad: true,
-      },
+      preferencias: respuestaPreferencias.data,
     }
   } catch (err) {
     throw new HttpError(500, err.message || 'Error al obtener datos de la empresa desde la API.')
@@ -145,6 +140,34 @@ export async function actualizarPerfil(datos) {
 
   const { data } = await api.put(`/empresas/${datos.id}`, datos)
   return data.data ?? data
+}
+
+/**
+ * Sube el logo de la empresa como archivo a `POST /empresas/{id}/logo`.
+ *
+ * Antes la imagen (una cadena `data:` de cientos de KB) viajaba dentro de
+ * `PUT /empresas/{id}` junto al perfil entero; la API admite 300 caracteres en
+ * `logo` y rechazaba el cambio siempre.
+ */
+export async function actualizarLogoEmpresa(id, dataUrl) {
+  if (USE_MOCKS) {
+    const { actualizarPerfilMock } = await cargarMock()
+    await actualizarPerfilMock({ logo: dataUrl })
+    return { logo: dataUrl, logoUrl: dataUrl }
+  }
+  if (!id) throw new HttpError(422, 'No se identificó la empresa que se debe actualizar.')
+
+  const [cabecera, contenido] = String(dataUrl).split(',')
+  const tipo = cabecera?.match(/^data:(image\/[\w.+-]+);base64$/)?.[1]
+  if (!tipo || !contenido) throw new HttpError(422, 'El logo no contiene una imagen válida.')
+  const bytes = Uint8Array.from(atob(contenido), (caracter) => caracter.charCodeAt(0))
+  const formulario = new FormData()
+  formulario.append('logo', new Blob([bytes], { type: tipo }), 'logo.webp')
+
+  const { data } = await api.post(`/empresas/${id}/logo`, formulario, {
+    headers: { 'Content-Type': undefined },
+  })
+  return { logo: data.logo ?? '', logoUrl: data.logo_url ?? data.logo ?? '' }
 }
 
 export async function cambiarContrasena({ actual, nueva, confirmacion }) {

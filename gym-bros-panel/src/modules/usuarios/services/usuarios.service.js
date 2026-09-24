@@ -368,11 +368,13 @@ export async function obtenerUsuarios(params = {}) {
 }
 
 export async function obtenerUsuario(id) {
+  // Antes se descargaba el listado completo (hasta 10 000 usuarios) para
+  // mostrar uno. La API ya devuelve la ficha con su empresa y aplica permisos.
   return ejecutarPeticion(async () => {
-    const { items } = await obtenerUsuarios({ pagina: 1, porPagina: 10000 })
-    const usuario = items.find((item) => Number(item.id) === Number(id))
-    if (!usuario) throw new HttpError(404, 'El usuario solicitado no existe.')
-    return usuario
+    const { data } = await api.get(`/usuarios/${id}`)
+    const usuario = data?.data ?? data
+    if (!usuario?.id) throw new HttpError(404, 'El usuario solicitado no existe.')
+    return normalizarUsuario(usuario)
   })
 }
 
@@ -405,7 +407,10 @@ export async function crearUsuario(payload) {
         headers: { 'Content-Type': undefined },
       })
       const guardada = respuestaFoto.data.data ?? respuestaFoto.data
-      return normalizarUsuario({ ...creado, foto_perfil: guardada.foto_url ?? guardada.foto_perfil })
+      return normalizarUsuario({
+        ...creado,
+        foto_perfil: guardada.foto_url ?? guardada.foto_perfil,
+      })
     })
   } catch (error) {
     throw endpointNoDisponible(error, 'crear')
@@ -431,12 +436,8 @@ export async function actualizarUsuario(id, payload) {
       const nuevaFoto = typeof foto === 'string' && foto.startsWith('data:image/')
       let archivo
       if (nuevaFoto) {
-        const [cabecera, contenido] = foto.split(',')
-        const tipo = cabecera.match(/^data:(image\/[\w.+-]+);base64$/)?.[1]
-        if (!tipo || !contenido) throw new Error('La foto seleccionada no es válida.')
-        const bytes = Uint8Array.from(atob(contenido), (caracter) => caracter.charCodeAt(0))
         archivo = new FormData()
-        archivo.append('foto_perfil', new Blob([bytes], { type: tipo }), 'foto.webp')
+        archivo.append('foto_perfil', dataUrlABlob(foto), 'foto.webp')
         delete campos.foto_perfil
       }
       let usuario = { id }
@@ -499,6 +500,25 @@ export async function obtenerHistorialUsuario(id) {
     if (error?.status === 404 || error?.status === 405) return null
     throw error
   }
+}
+
+const ROLES_ASIGNABLES = [
+  { valor: 'admin', etiqueta: 'Administrador' },
+  { valor: 'manager', etiqueta: 'Empresa' },
+  { valor: 'trainer', etiqueta: 'Entrenador' },
+  { valor: 'member', etiqueta: 'Usuario' },
+]
+
+/**
+ * Roles que la sesión puede asignar al crear un usuario. La API sólo deja a
+ * una cuenta de empresa crear entrenadores y usuarios; ofrecerle los demás
+ * terminaba en un 422 tras rellenar todo el formulario.
+ */
+export function obtenerRolesAsignables() {
+  if (!obtenerAlcanceEmpresa()) return ROLES_ASIGNABLES.map((rol) => ({ ...rol }))
+  return ROLES_ASIGNABLES.filter(({ valor }) => ['trainer', 'member'].includes(valor)).map(
+    (rol) => ({ ...rol }),
+  )
 }
 
 export async function obtenerOpcionesEmpresas() {

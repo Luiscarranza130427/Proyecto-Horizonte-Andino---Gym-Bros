@@ -28,7 +28,7 @@ class UpdateEmpresaRequest extends FormRequest
             'enlace_web' => ['sometimes', 'nullable', 'string', 'max:300'],
             'direccion' => ['sometimes', 'nullable', 'string', 'max:250'],
             'telefono' => ['sometimes', 'required', 'string', 'max:9'],
-            'correo' => ['sometimes', 'required', 'email', 'max:150'],
+            'correo' => ['sometimes', 'required', 'email', 'max:150', 'not_regex:/[\x00-\x1F\x7F]/'],
             'estado' => ['sometimes', 'required', 'boolean'],
             'fecha_registro' => ['sometimes', 'required', 'date_format:Y-m-d', 'after_or_equal:1000-01-01'],
             'logo' => ['sometimes', 'required', 'string', 'max:300'],

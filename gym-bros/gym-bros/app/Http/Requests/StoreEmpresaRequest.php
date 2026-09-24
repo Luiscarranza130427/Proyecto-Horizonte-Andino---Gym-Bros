@@ -33,7 +33,7 @@ class StoreEmpresaRequest extends FormRequest
             'enlace_web' => ['nullable', 'string', 'max:300'],
             'direccion' => ['nullable', 'string', 'max:250'],
             'telefono' => ['required', 'string', 'max:9'],
-            'correo' => ['required', 'email', 'max:150'],
+            'correo' => ['required', 'email', 'max:150', 'not_regex:/[\x00-\x1F\x7F]/'],
             'estado' => ['required', 'boolean'],
             'fecha_registro' => ['required', 'date'],
             'logo' => $this->hasFile('logo') ? ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'] : ['required', 'string', 'max:300'],

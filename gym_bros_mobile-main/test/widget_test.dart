@@ -161,6 +161,35 @@ GymApi _widgetGymApi({bool includeNickname = true}) {
   return GymApi(
     mediaBaseUri: Uri.parse('http://192.168.1.56/'),
     client: MockClient((request) async {
+      final ruta = request.url.path;
+      if (ruta == '/api/auth/login') {
+        return http.Response(
+          '{"data":{"token":"1|token-de-prueba","token_type":"Bearer"}}',
+          200,
+        );
+      }
+      // Todo lo privado exige el token: antes varias peticiones no lo enviaban
+      // y solo funcionaban porque la API estaba abierta.
+      if (request.headers['Authorization'] != 'Bearer 1|token-de-prueba') {
+        return http.Response('{"message":"Sesion no valida o expirada."}', 401);
+      }
+      if (ruta == '/api/usuarios' || ruta == '/api/empresas') {
+        fail('La app no debe descargar listados completos: $ruta');
+      }
+      if (ruta == '/api/auth/me') {
+        final usuarios = jsonDecode(_usuariosJson(includeNickname)) as Map;
+        return http.Response(
+          jsonEncode({'data': (usuarios['data'] as List).first}),
+          200,
+        );
+      }
+      if (ruta == '/api/empresas/1') {
+        final empresas = jsonDecode(_empresasJson) as Map;
+        return http.Response(
+          jsonEncode({'data': (empresas['data'] as List).first}),
+          200,
+        );
+      }
       if (request.url.path.contains('/sesiones/')) {
         final day = int.parse(request.url.pathSegments.last);
         expect(request.url.path, '/api/usuarios/1/rutinas/1/sesiones/$day');
@@ -178,9 +207,6 @@ GymApi _widgetGymApi({bool includeNickname = true}) {
       final body = switch (path) {
         'perfil' => '{"data":{"id_usuarios":1,"id_evaluacion":8,"fecha_evaluacion":"2026-09-02"}}',
         'evaluacionesfisicas' => '{"data":[{"id":8,"fecha_evaluacion":"2026-09-02","peso":78.5,"altura":175,"porcentaje_grasa":18.2,"masa_muscular":35.2,"cintura":90,"pecho":100,"brazo":33,"muslo":55,"cadera":96}]}',
-        'usuarios' =>
-          '{"data":[{"id":1,"nombres":"Juan","apellidos":"Perez Ramirez","correo":"juan.perez@gmail.com","tipo_documento":"DNI","numero_documento":"70123456","telefono":"987654321","direccion":"Jr. Los Pinos 123","foto_perfil":"gym-bros\\\\storage\\\\app\\\\public\\\\usuario\\\\prueba_gym.webp","fecha_registro":"2026-01-10","fecha_nacimiento":"1998-05-15","asistencia_semanal":"2026-08-24 08:30:00","tipo_usuario":"Usuario","id_empresas":1${includeNickname ? ',"apodo":"bro"' : ''}}]}',
-        'empresas' => '{"data":[{"id":1,"nombre":"titan gym","nombre_gerente":"Carlos Mendoza","region":"Cajamarca","direccion":"Av. Hoyos Rubio 123","telefono":"976123456","correo":"contacto@gymbros.pe","enlace_web":"https://gymbros.pe","logo":"gym-bros\\\\storage\\\\app\\\\public\\\\empresas\\\\titan_gym.webp","estado":1,"color_1":"#2563EB","color_2":"#111827"}]}',
         'rutinas' => '{"data":[{"id":1,"nombre":"Rutina Inicial","descripcion":"Rutina general","objetivo":"perdida_peso","dias_semana":4,"duracion_estimada":60,"fecha_inicio":"2026-08-01","fecha_fin":"2026-09-01","estado":1,"id_usuarios":1}]}',
         'progresos' => '{"data":[{"id":1,"fecha":"2026-08-01","peso":"82.50","altura":"1.75","porcentaje_grasa":"25.40","masa_muscular":"35.20","cintura":"94.00","pecho":"102.00","brazo":"34.00","muslo":"57.00","cadera":"98.00","notas":"Medición inicial","id_usuarios":1}]}',
         'peso-grasa' => '{"data":{"id_usuarios":1,"id_evaluacion":8,"fecha_evaluacion":"2026-09-02","peso":78.5,"porcentaje_grasa":18.2}}',
@@ -192,3 +218,9 @@ GymApi _widgetGymApi({bool includeNickname = true}) {
     }),
   );
 }
+
+String _usuariosJson(bool includeNickname) =>
+    '{"data":[{"id":1,"nombres":"Juan","apellidos":"Perez Ramirez","correo":"juan.perez@gmail.com","tipo_documento":"DNI","numero_documento":"70123456","telefono":"987654321","direccion":"Jr. Los Pinos 123","foto_perfil":"gym-bros/storage/app/public/usuario/prueba_gym.webp","fecha_registro":"2026-01-10","fecha_nacimiento":"1998-05-15","asistencia_semanal":"2026-08-24 08:30:00","tipo_usuario":"Usuario","id_empresas":1${includeNickname ? ',"apodo":"bro"' : ''}}]}';
+
+const _empresasJson =
+    '{"data":[{"id":1,"nombre":"titan gym","nombre_gerente":"Carlos Mendoza","region":"Cajamarca","direccion":"Av. Hoyos Rubio 123","telefono":"976123456","correo":"contacto@gymbros.pe","enlace_web":"https://gymbros.pe","logo":"gym-bros/storage/app/public/empresas/titan_gym.webp","estado":1,"color_1":"#2563EB","color_2":"#111827"}]}';

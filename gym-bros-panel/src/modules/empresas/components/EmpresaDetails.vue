@@ -4,6 +4,7 @@ import { computed } from 'vue'
 
 import EmpresaLogo from '@/modules/empresas/components/EmpresaLogo.vue'
 import EmpresaStatusBadge from '@/modules/empresas/components/EmpresaStatusBadge.vue'
+import { etiquetaRegion } from '@/shared/constants/regionesPeru'
 import { formatearFecha, formatearNumero } from '@/shared/utils/formato'
 
 const props = defineProps({
@@ -37,7 +38,7 @@ const sitioSeguro = computed(() => {
       <div>
         <p>Empresa registrada</p>
         <h2>{{ empresa.nombre }}</h2>
-        <span>{{ empresa.region || 'Región no especificada' }}</span>
+        <span>{{ etiquetaRegion(empresa.region) || 'Región no especificada' }}</span>
       </div>
       <EmpresaStatusBadge :estado="empresa.estado" />
     </section>
@@ -63,18 +64,22 @@ const sitioSeguro = computed(() => {
           <div>
             <dt>Correo</dt>
             <dd>
-              <a :href="`mailto:${empresa.correo}`">{{ empresa.correo }}</a>
+              <a v-if="empresa.correo" :href="`mailto:${empresa.correo}`">{{ empresa.correo }}</a>
+              <span v-else>No especificado</span>
             </dd>
           </div>
           <div>
             <dt>Teléfono</dt>
             <dd>
-              <a :href="`tel:${empresa.telefono}`">{{ empresa.telefono }}</a>
+              <a v-if="empresa.telefono" :href="`tel:${empresa.telefono}`">{{
+                empresa.telefono
+              }}</a>
+              <span v-else>No especificado</span>
             </dd>
           </div>
           <div class="detalle__completo">
             <dt>Región</dt>
-            <dd>{{ empresa.region || 'No especificada' }}</dd>
+            <dd>{{ etiquetaRegion(empresa.region) || 'No especificada' }}</dd>
           </div>
           <div class="detalle__completo">
             <dt>Dirección</dt>

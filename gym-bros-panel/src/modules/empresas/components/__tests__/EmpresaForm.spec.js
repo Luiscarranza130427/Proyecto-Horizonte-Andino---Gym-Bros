@@ -19,7 +19,7 @@ async function completarFormulario(wrapper) {
   await wrapper.get('#empresa-nombre').setValue('Nova Fitness')
   await wrapper.get('#empresa-gerente').setValue('Andrea Morales')
   await wrapper.get('#empresa-correo').setValue('contacto@novafitness.test')
-  await wrapper.get('#empresa-telefono').setValue('+51 987 654 321')
+  await wrapper.get('#empresa-telefono').setValue('987 654 321')
   await wrapper.get('#empresa-ruc').setValue('20987654321')
   await wrapper.get('#empresa-web').setValue('https://novafitness.example')
   for (const dia of DIAS) {
@@ -197,9 +197,27 @@ describe('EmpresaForm', () => {
     await wrapper.get('input[name="colorPrimarioHex"]').setValue('#zzzzzz')
     await wrapper.get('form').trigger('submit')
 
-    expect(wrapper.text()).toContain('Introduce un teléfono válido.')
+    expect(wrapper.text()).toContain('Introduce un teléfono de 6 a 9 dígitos.')
     expect(wrapper.text()).toContain('Introduce un color hexadecimal válido.')
     expect(wrapper.emitted('submit')).toBeUndefined()
+  })
+
+  it('ajusta el teléfono a la columna de la API (9 dígitos) y lo envía sin separadores', async () => {
+    const wrapper = mount(EmpresaForm)
+    await completarFormulario(wrapper)
+    await wrapper.get('#empresa-telefono').setValue('+51 987 654 321')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.get('#error-telefono').text()).toContain('de 6 a 9 dígitos')
+    expect(wrapper.emitted('submit')).toBeUndefined()
+
+    await wrapper.get('#empresa-telefono').setValue('987 654-321')
+    await wrapper.get('#empresa-region').setValue('Junin')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('submit')[0][0]).toEqual(
+      expect.objectContaining({ telefono: '987654321', region: 'Junin' }),
+    )
+    // La etiqueta conserva la tilde; el valor es el que acepta la API.
+    expect(wrapper.get('#empresa-region option[value="Junin"]').text()).toBe('Junín')
   })
 
   it('no reenvía campos de solo lectura recibidos en los valores iniciales', async () => {
@@ -210,7 +228,7 @@ describe('EmpresaForm', () => {
           nombre: 'Iron House',
           gerente: 'Diego Salazar',
           correo: 'contacto@ironhouse.test',
-          telefono: '+51 910 000 002',
+          telefono: '910000002',
           estado: 'active',
           usuarios: 999,
           fechaRegistro: '2020-01-01',

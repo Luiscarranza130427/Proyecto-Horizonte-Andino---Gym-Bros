@@ -2,6 +2,9 @@
 import { Building2, Globe, Info, Mail, MapPin, Phone, RotateCcw, Save, User } from 'lucide-vue-next'
 import { reactive, watch } from 'vue'
 
+import { REGIONES_PERU, valorRegion } from '@/shared/constants/regionesPeru'
+import { esCorreoValido, esTelefonoConLimite, limpiarTelefono } from '@/shared/utils/validaciones'
+
 const props = defineProps({
   perfil: {
     type: Object,
@@ -34,7 +37,7 @@ function sincronizarFormulario() {
   formulario.ruc = props.perfil.ruc ?? ''
   formulario.telefono = props.perfil.telefono ?? ''
   formulario.correo = props.perfil.correo ?? ''
-  formulario.region = props.perfil.region ?? ''
+  formulario.region = valorRegion(props.perfil.region)
   formulario.direccion = props.perfil.direccion ?? ''
   formulario.enlace_web = props.perfil.enlace_web ?? ''
   limpiarErrores()
@@ -60,8 +63,15 @@ function validar() {
     valido = false
   }
 
-  if (formulario.telefono && !/^[+0-9\s-]{6,20}$/.test(formulario.telefono.trim())) {
-    errores.telefono = 'Ingresa un formato de teléfono válido.'
+  // Mismas reglas que la API: `empresas.telefono` es varchar(9) y el correo es
+  // obligatorio. Antes se aceptaban 20 caracteres y un correo vacío (422).
+  if (!esTelefonoConLimite(formulario.telefono, 9)) {
+    errores.telefono = 'Ingresa un teléfono de 6 a 9 dígitos.'
+    valido = false
+  }
+
+  if (!esCorreoValido(formulario.correo)) {
+    errores.correo = 'Ingresa un correo válido.'
     valido = false
   }
 
@@ -70,7 +80,11 @@ function validar() {
 
 function enviar() {
   if (!validar()) return
-  emit('guardar', { ...formulario })
+  emit('guardar', {
+    ...formulario,
+    telefono: limpiarTelefono(formulario.telefono),
+    correo: formulario.correo.trim().toLowerCase(),
+  })
 }
 </script>
 
@@ -145,12 +159,13 @@ function enviar() {
             type="text"
             class="form-control"
             placeholder="RUC de 11 dígitos"
+            maxlength="12"
           />
         </div>
 
         <!-- Teléfono / WhatsApp -->
         <div class="campo">
-          <label class="form-label" for="empresa-telefono">Teléfono / WhatsApp de la Sede</label>
+          <label class="form-label" for="empresa-telefono">Teléfono / WhatsApp de la Sede *</label>
           <div class="input-icono-wrapper">
             <Phone :size="16" class="input-icono" aria-hidden="true" />
             <input
@@ -159,7 +174,8 @@ function enviar() {
               type="tel"
               class="form-control form-control--con-icono"
               :class="{ 'is-invalid': errores.telefono }"
-              placeholder="+51 976 123 456"
+              placeholder="976123456"
+              maxlength="11"
               :aria-invalid="Boolean(errores.telefono)"
               :aria-describedby="errores.telefono ? 'error-empresa-telefono' : null"
               @input="delete errores.telefono"
@@ -172,7 +188,7 @@ function enviar() {
 
         <!-- Correo corporativo -->
         <div class="campo">
-          <label class="form-label" for="empresa-correo">Correo Corporativo Oficial</label>
+          <label class="form-label" for="empresa-correo">Correo Corporativo Oficial *</label>
           <div class="input-icono-wrapper">
             <Mail :size="16" class="input-icono" aria-hidden="true" />
             <input
@@ -180,9 +196,17 @@ function enviar() {
               v-model="formulario.correo"
               type="email"
               class="form-control form-control--con-icono"
+              :class="{ 'is-invalid': errores.correo }"
               placeholder="contacto@gymbros.pe"
+              required
+              :aria-invalid="Boolean(errores.correo)"
+              :aria-describedby="errores.correo ? 'error-empresa-correo' : null"
+              @input="delete errores.correo"
             />
           </div>
+          <p v-if="errores.correo" id="error-empresa-correo" class="campo__error">
+            {{ errores.correo }}
+          </p>
           <p class="campo__ayuda">
             <Info :size="13" aria-hidden="true" />
             <span>Correo utilizado para notificaciones del SaaS y facturación.</span>
@@ -192,13 +216,13 @@ function enviar() {
         <!-- Región / Departamento -->
         <div class="campo">
           <label class="form-label" for="empresa-region">Región / Departamento</label>
-          <input
-            id="empresa-region"
-            v-model="formulario.region"
-            type="text"
-            class="form-control"
-            placeholder="Cajamarca"
-          />
+          <!-- La API sólo admite las regiones del catálogo: texto libre daba 422. -->
+          <select id="empresa-region" v-model="formulario.region" class="form-select">
+            <option value="">Selecciona una región</option>
+            <option v-for="region in REGIONES_PERU" :key="region.valor" :value="region.valor">
+              {{ region.etiqueta }}
+            </option>
+          </select>
         </div>
 
         <!-- Dirección física -->

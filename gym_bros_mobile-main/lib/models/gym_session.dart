@@ -276,7 +276,11 @@ class GymUser {
       userType: _text(json['tipo_usuario']),
       companyId: _requiredId(json['id_empresas'], 'empresa del usuario'),
       nickname: _text(json['apodo']),
-      profilePhotoUrl: _resolveMediaUrl(json['foto_perfil'], mediaBaseUri),
+      // La API ya entrega la URL pública normalizada; la ruta cruda es respaldo.
+      profilePhotoUrl: _resolveMediaUrl(
+        json['foto_perfil_url'] ?? json['foto_perfil'],
+        mediaBaseUri,
+      ),
     );
   }
 
@@ -294,8 +298,12 @@ class MembershipStatus {
 String _resolveMediaUrl(Object? value, Uri baseUri) {
   var raw = _text(value).replaceAll('\\', '/').trim();
   if (raw.isEmpty) return '';
+  // Sólo http(s) es una URL: `C:/…` también «tiene esquema» (c) y antes se
+  // devolvía tal cual en vez de normalizarse.
   final parsed = Uri.tryParse(raw);
-  if (parsed != null && parsed.hasScheme) return parsed.toString();
+  if (parsed != null && ['http', 'https'].contains(parsed.scheme)) {
+    return parsed.toString();
+  }
 
   if (raw.endsWith('.web')) {
     raw = '${raw}p';
@@ -309,14 +317,15 @@ String _resolveMediaUrl(Object? value, Uri baseUri) {
     final storageIndex = raw.indexOf('/storage/');
     if (storageIndex != -1) {
       raw = raw.substring(storageIndex + 1);
-    } else if (!raw.startsWith('storage/')) {
-      if (raw.startsWith('usuario/') ||
-          raw.startsWith('usuarios/') ||
-          raw.startsWith('empresas/') ||
-          raw.startsWith('logos/') ||
-          raw.startsWith('banners/')) {
-        raw = 'storage/$raw';
-      }
+    } else if (RegExp(r'^[a-zA-Z]:/').hasMatch(raw)) {
+      // Ruta absoluta de otro equipo fuera del disco público: igual que
+      // `RutaPublica` en la API, no se expone.
+      return '';
+    } else if (!raw.startsWith('storage/') && !raw.startsWith('assets/')) {
+      // Toda ruta relativa del disco `public` se sirve desde /storage (misma
+      // regla que la API). Antes sólo se reconocían algunas carpetas y las
+      // imágenes de `ejercicios/` subidas desde el panel daban 404.
+      raw = 'storage/$raw';
     }
   }
 

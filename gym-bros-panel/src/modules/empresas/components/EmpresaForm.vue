@@ -21,8 +21,9 @@ import { resolverUrlStorage } from '@/shared/utils/storage'
 import {
   esColorValido,
   esCorreoValido,
-  esTelefonoValido,
+  esTelefonoConLimite,
   esUrlValida,
+  limpiarTelefono,
 } from '@/shared/utils/validaciones'
 
 const props = defineProps({
@@ -172,7 +173,10 @@ function validar(datos, errores) {
 
   if (datos.gerente.trim().length < 3) errores.gerente = 'Introduce el nombre del gerente.'
   if (!esCorreoValido(datos.correo)) errores.correo = 'Introduce un correo válido.'
-  if (!esTelefonoValido(datos.telefono)) errores.telefono = 'Introduce un teléfono válido.'
+  // `empresas.telefono` es varchar(9): con más dígitos la API respondía 422.
+  if (!esTelefonoConLimite(datos.telefono, 9)) {
+    errores.telefono = 'Introduce un teléfono de 6 a 9 dígitos.'
+  }
 
   if (datos.sitioWeb && !esUrlValida(datos.sitioWeb)) {
     errores.sitioWeb = 'Introduce una URL completa que empiece por http:// o https://.'
@@ -278,7 +282,7 @@ async function enviar() {
     gerente: formulario.gerente.trim(),
     ruc: formulario.ruc.trim(),
     correo: formulario.correo.trim().toLowerCase(),
-    telefono: formulario.telefono.trim(),
+    telefono: limpiarTelefono(formulario.telefono),
     direccion: formulario.direccion.trim(),
     sitioWeb: formulario.sitioWeb.trim(),
   }
@@ -468,8 +472,8 @@ async function seleccionarLogo(evento) {
             @change="limpiarError('region')"
           >
             <option value="">Selecciona una región</option>
-            <option v-for="region in REGIONES_PERU" :key="region" :value="region">
-              {{ region }}
+            <option v-for="region in REGIONES_PERU" :key="region.valor" :value="region.valor">
+              {{ region.etiqueta }}
             </option>
           </select>
           <p v-if="errorDe('region')" id="error-region" class="campo__error">

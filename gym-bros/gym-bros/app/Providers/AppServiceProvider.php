@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Se lee de config (no de env) para que funcione con config:cache en produccion.
+        if ($proxies = config('app.trusted_proxies')) {
+            \Illuminate\Http\Middleware\TrustProxies::at(
+                $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
+        }
+
         \Illuminate\Support\Facades\Gate::define('gestionar-alimentacion', fn ($actor, \App\Models\Usuario $usuario) => $actor instanceof \App\Models\Usuario
             && \App\Support\Acceso::puedeSeguirUsuario($actor, $usuario));
 

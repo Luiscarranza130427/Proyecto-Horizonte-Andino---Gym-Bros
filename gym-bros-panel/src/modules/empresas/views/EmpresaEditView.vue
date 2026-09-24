@@ -97,7 +97,8 @@ async function guardar(datos) {
     const datosEditables = { ...datos }
     delete datosEditables.estado
     const actualizada = await actualizarEmpresa(route.params.id, datosEditables)
-    if (Number(actualizada.id) === Number(tenant.tenantId)) tenant.fijarTenant(actualizada)
+    // Si es la empresa de la sesión, el shell refleja nombre, logo y colores.
+    tenant.actualizarDesdeEmpresa(actualizada)
     await router.push({
       name: 'empresas-listado',
       query: { notice: 'updated' },

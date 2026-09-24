@@ -3,6 +3,7 @@ import { AlertTriangle, History, RotateCw } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { useAuthStore } from '@/core/auth/auth.store'
+import { useTenantStore } from '@/core/tenant/tenant.store'
 import DashboardBanner from '@/modules/dashboard/components/DashboardBanner.vue'
 import DashboardSkeleton from '@/modules/dashboard/components/DashboardSkeleton.vue'
 import MetricCard from '@/modules/dashboard/components/MetricCard.vue'
@@ -12,6 +13,7 @@ import { obtenerBanners, obtenerDashboard } from '@/modules/dashboard/services/d
 import { formatearTiempoRelativo } from '@/shared/utils/formato'
 
 const auth = useAuthStore()
+const tenant = useTenantStore()
 const estado = ref('idle')
 const datos = ref(null)
 const banners = ref([])
@@ -98,6 +100,7 @@ async function guardarEmpresa(valores) {
       delete datosAdministrativos[`link_boton_${n}`]
     }
     empresa.value = await actualizarEmpresa(empresa.value.id, datosAdministrativos)
+    tenant.actualizarDesdeEmpresa(empresa.value)
     claveFormularioEmpresa.value += 1
     mensajeEmpresa.value = 'Datos de la empresa actualizados correctamente.'
   } catch (error) {
@@ -128,6 +131,8 @@ async function guardarIdentidad(valores) {
       logoUrl: guardada.logoUrl,
       ...Object.fromEntries([1, 2, 3].map((n) => [`banner_${n}`, guardada[`banner_${n}`]])),
     }
+    // El panel adopta los colores y el logo nuevos sin recargar la página.
+    tenant.actualizarDesdeEmpresa(identidadEmpresa.value)
     claveIdentidad.value += 1
     identidadGuardada.value = true
     mensajeIdentidad.value = 'Personalización guardada correctamente.'

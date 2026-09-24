@@ -2,9 +2,16 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { obtenerTenantActual } from '@/core/tenant/tenant.service'
+import { VARIABLES_TEMA, calcularTemaEmpresa } from '@/core/tenant/temaEmpresa'
 import { resolverUrlStorage } from '@/shared/utils/storage'
 
 const FAVICON_PREDETERMINADO = '/favicon.svg'
+const VARIABLES_EMPRESA = [
+  '--gb-tenant-primary',
+  '--gb-tenant-background',
+  '--gb-tenant-secondary',
+  '--gb-tenant-text',
+]
 
 export const useTenantStore = defineStore('tenant', () => {
   const tenant = ref(null)
@@ -41,30 +48,44 @@ export const useTenantStore = defineStore('tenant', () => {
     favicon.setAttribute('href', FAVICON_PREDETERMINADO)
   }
 
+  function limpiarVariablesTema() {
+    const estilo = document.documentElement.style
+    // `--gb-text` lo escribían versiones antiguas: se sigue limpiando.
+    for (const variable of [...VARIABLES_TEMA, ...VARIABLES_EMPRESA, '--gb-text']) {
+      estilo.removeProperty(variable)
+    }
+  }
+
+  /*
+   * Los colores de la empresa pintan el panel igual que la app móvil: `color_1`
+   * tiñe el fondo y `color_2` sustituye al rojo de Gym Bros como acento. Antes
+   * sólo se guardaban en `--gb-tenant-*`, que casi nada usaba: la app cambiaba
+   * de color y el panel seguía rojo.
+   */
   function aplicarTemaEmpresa() {
     if (typeof document === 'undefined') return
-    // Limpia versiones antiguas que podían haber teñido todo el fondo de la app.
-    document.documentElement.style.removeProperty('--gb-bg')
-    document.documentElement.style.removeProperty('--gb-text')
+    limpiarVariablesTema()
+    const estilo = document.documentElement.style
     const fondo = colorPrimario.value
     const texto = colorSecundario.value
     if (fondo) {
-      document.documentElement.style.setProperty('--gb-tenant-primary', fondo)
-      document.documentElement.style.setProperty('--gb-tenant-background', fondo)
+      estilo.setProperty('--gb-tenant-primary', fondo)
+      estilo.setProperty('--gb-tenant-background', fondo)
     }
     if (texto) {
-      document.documentElement.style.setProperty('--gb-tenant-secondary', texto)
-      document.documentElement.style.setProperty('--gb-tenant-text', texto)
+      estilo.setProperty('--gb-tenant-secondary', texto)
+      estilo.setProperty('--gb-tenant-text', texto)
+    }
+    const tema = calcularTemaEmpresa({ colorFondo: fondo, colorAcento: texto })
+    for (const [variable, valor] of Object.entries(tema)) {
+      estilo.setProperty(variable, valor)
     }
     aplicarFaviconEmpresa()
   }
 
   function removerTemaEmpresa() {
     if (typeof document === 'undefined') return
-    document.documentElement.style.removeProperty('--gb-tenant-primary')
-    document.documentElement.style.removeProperty('--gb-tenant-background')
-    document.documentElement.style.removeProperty('--gb-tenant-secondary')
-    document.documentElement.style.removeProperty('--gb-tenant-text')
+    limpiarVariablesTema()
     aplicarFaviconEmpresa()
   }
 
@@ -87,6 +108,25 @@ export const useTenantStore = defineStore('tenant', () => {
     aplicarTemaEmpresa()
   }
 
+  /**
+   * Refleja en el shell una empresa recién guardada (forma de
+   * `empresas.service`) si es la de la sesión: nombre, logo y colores cambian
+   * al instante, sin recargar. Conserva el resto del contexto del tenant.
+   */
+  function actualizarDesdeEmpresa(empresa) {
+    if (!tenant.value || !empresa || Number(empresa.id) !== Number(tenant.value.id)) return
+    const cambios = {
+      nombre: empresa.nombre,
+      logo: empresa.logoUrl,
+      color1: empresa.colorPrimario,
+      color2: empresa.colorSecundario,
+    }
+    fijarTenant({
+      ...tenant.value,
+      ...Object.fromEntries(Object.entries(cambios).filter(([, valor]) => valor)),
+    })
+  }
+
   function limpiarTenant() {
     tenant.value = null
     removerTemaEmpresa()
@@ -103,6 +143,7 @@ export const useTenantStore = defineStore('tenant', () => {
     cargando,
     cargarTenant,
     fijarTenant,
+    actualizarDesdeEmpresa,
     limpiarTenant,
   }
 })

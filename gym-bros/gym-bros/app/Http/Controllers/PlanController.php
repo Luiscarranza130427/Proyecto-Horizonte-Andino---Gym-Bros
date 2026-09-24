@@ -8,6 +8,8 @@ use App\Http\Resources\PlanResource;
 use App\Models\Plan;
 use App\Models\Suscripcion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PlanController extends Controller
 {
@@ -43,7 +45,7 @@ class PlanController extends Controller
 
     public function store(StorePlanRequest $request)
     {
-        $plan = new Plan();
+        $plan = new Plan;
         $plan->forceFill($request->validated())->save();
 
         return (new PlanResource($plan->refresh()))->response()->setStatusCode(201);
@@ -68,8 +70,8 @@ class PlanController extends Controller
             return response()->json(['message' => 'Plan no encontrado.'], 404);
         }
         $enUso = Suscripcion::where('id_planes', $plan->id)->exists()
-            || (\Illuminate\Support\Facades\Schema::hasTable('ordenes_compra')
-                && \Illuminate\Support\Facades\DB::table('ordenes_compra')->where('id_planes', $plan->id)->exists());
+            || (Schema::hasTable('ordenes_compra')
+                && DB::table('ordenes_compra')->where('id_planes', $plan->id)->exists());
         if ($enUso) {
             return response()->json(['message' => 'El plan tiene suscripciones o compras asociadas. Desactivalo en lugar de eliminarlo.'], 409);
         }

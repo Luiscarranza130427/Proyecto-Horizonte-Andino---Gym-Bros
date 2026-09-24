@@ -134,6 +134,41 @@ describe('notificaciones.service con API', () => {
     expect(get).toHaveBeenCalledWith('/notificaciones/activas')
   })
 
+  it('el historial del mock y el de Laravel comparten la forma de la paginación', async () => {
+    // La vista pagina con `pagina`/`ultimaPagina`. El mock emitía
+    // `paginaActual`/`totalPaginas`: en desarrollo se veía la paginación y
+    // con la API real desaparecía y sólo se podía consultar la primera página.
+    const get = vi.fn().mockResolvedValue({
+      data: {
+        data: [{ id: 1, enviada: 1 }],
+        meta: { current_page: 2, last_page: 4, per_page: 6, total: 20 },
+      },
+    })
+    vi.doMock('@/core/config/env', () => ({ USE_MOCKS: false }))
+    vi.doMock('@/core/api/api', () => ({ default: { get } }))
+    const conApi = await import('@/modules/notificaciones/services/notificaciones.service')
+    const real = await conApi.obtenerNotificacionesEnviadas({ pagina: 2, busqueda: 'cardio' })
+
+    expect(get).toHaveBeenCalledWith('/notificaciones', {
+      params: expect.objectContaining({ page: 2, per_page: 6, enviada: true, search: 'cardio' }),
+    })
+    expect(real.paginacion).toMatchObject({ pagina: 2, ultimaPagina: 4, porPagina: 6, total: 20 })
+
+    vi.resetModules()
+    const conMock = await cargarServicioMock()
+    const simulado = await completarPeticion(
+      conMock.obtenerNotificacionesEnviadas({ porPagina: 2 }),
+    )
+    vi.useRealTimers()
+
+    expect(Object.keys(simulado.paginacion).sort()).toEqual(
+      expect.arrayContaining(['pagina', 'porPagina', 'total', 'ultimaPagina']),
+    )
+    expect(simulado.paginacion.ultimaPagina).toBe(
+      Math.ceil(simulado.paginacion.total / simulado.paginacion.porPagina),
+    )
+  })
+
   it('envía contenido y alcance al backend sin resolver usuarios en Vue', async () => {
     const post = vi.fn().mockResolvedValue({ data: { data: { id: 9, enviada: true } } })
     vi.doMock('@/core/config/env', () => ({ USE_MOCKS: false }))

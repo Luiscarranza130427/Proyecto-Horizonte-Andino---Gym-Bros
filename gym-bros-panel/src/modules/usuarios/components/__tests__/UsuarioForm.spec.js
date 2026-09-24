@@ -8,6 +8,9 @@ const EMPRESAS = [{ id: 1, nombre: 'Power Gym' }]
 async function completarFormulario(wrapper) {
   await wrapper.get('#usuario-nombre').setValue('Carlos')
   await wrapper.get('#usuario-apellido').setValue('Ramírez')
+  await wrapper.get('#usuario-apodo').setValue('Charly')
+  await wrapper.get('#usuario-nacimiento').setValue('1995-04-12')
+  await wrapper.get('#usuario-genero').setValue('Varon')
   await wrapper.get('#usuario-correo').setValue('carlos.nuevo@gymbros.test')
   await wrapper.get('#usuario-telefono').setValue('+51 987654321')
   await wrapper.get('#usuario-documento').setValue('76543210')
@@ -60,6 +63,45 @@ describe('UsuarioForm', () => {
     expect(wrapper.text()).toContain('Introduce un apellido')
     expect(wrapper.text()).toContain('Introduce un correo válido')
     expect(wrapper.text()).toContain('Selecciona una empresa')
+    // La API exige estos campos al crear: sin ellos el alta terminaba en 422.
+    expect(wrapper.get('#error-apodo').text()).toBe('Introduce un apodo.')
+    expect(wrapper.get('#error-telefono').text()).toContain('de 6 a 12 dígitos')
+    expect(wrapper.get('#error-documento').text()).toBe('Introduce el número de documento.')
+    expect(wrapper.get('#error-nacimiento').text()).toBe('Introduce la fecha de nacimiento.')
+    expect(wrapper.get('#error-genero').text()).toBe('Selecciona el género.')
+    expect(wrapper.get('#usuario-telefono').attributes('aria-describedby')).toBe('error-telefono')
+  })
+
+  it('respeta los límites de la API en teléfono, documento y fecha', async () => {
+    const wrapper = mount(UsuarioForm, { props: { empresas: EMPRESAS } })
+    await completarFormulario(wrapper)
+    await wrapper.get('#usuario-telefono').setValue('+51 987 654 3210')
+    await wrapper.get('#usuario-tipo-documento').setValue('passport')
+    await wrapper.get('#usuario-documento').setValue('AB1234567890X')
+    await wrapper.get('#usuario-nacimiento').setValue('1899-12-31')
+
+    await wrapper.get('form').trigger('submit')
+
+    expect(wrapper.emitted('submit')).toBeUndefined()
+    expect(wrapper.get('#error-telefono').text()).toContain('de 6 a 12 dígitos')
+    expect(wrapper.get('#error-documento').text()).toContain('entre 5 y 12 caracteres')
+    expect(wrapper.get('#error-nacimiento').text()).toContain('fecha de nacimiento válida')
+    expect(wrapper.get('#usuario-documento').attributes('maxlength')).toBe('12')
+  })
+
+  it('sólo ofrece los roles que la sesión puede asignar', () => {
+    const wrapper = mount(UsuarioForm, {
+      props: {
+        empresas: EMPRESAS,
+        roles: [
+          { valor: 'trainer', etiqueta: 'Entrenador' },
+          { valor: 'member', etiqueta: 'Usuario' },
+        ],
+      },
+    })
+    const opciones = wrapper.findAll('#usuario-rol option').map((opcion) => opcion.text())
+    expect(opciones).toEqual(['Entrenador', 'Usuario'])
+    expect(wrapper.get('#usuario-genero').exists()).toBe(true)
   })
 
   it('normaliza y emite un usuario válido', async () => {
@@ -73,7 +115,11 @@ describe('UsuarioForm', () => {
       expect.objectContaining({
         nombre: 'Carlos',
         apellido: 'Ramírez',
+        apodo: 'Charly',
         correo: 'carlos.nuevo@gymbros.test',
+        telefono: '+51987654321',
+        genero: 'Varon',
+        fechaNacimiento: '1995-04-12',
         tipoDocumento: 'dni',
         numeroDocumento: '76543210',
         empresaId: 1,
@@ -155,12 +201,42 @@ describe('UsuarioForm', () => {
 
     await wrapper.get('form').trigger('submit')
     expect(wrapper.emitted('submit')).toHaveLength(1)
-    expect(wrapper.emitted('submit')[0][0]).toEqual(
+    const payload = wrapper.emitted('submit')[0][0]
+    expect(payload).toEqual(
       expect.objectContaining({
         nombre: 'Carlos',
         apellido: 'Ramírez',
         correo: 'carlos@test.com',
+        numeroDocumento: '76543210',
       }),
     )
+    // Lo que el usuario no tenía y sigue vacío no viaja: la API lo rechazaría
+    // (`sometimes|required`) como antes hacía con `genero: null`.
+    for (const campo of ['apodo', 'telefono', 'fechaNacimiento', 'genero']) {
+      expect(payload).not.toHaveProperty(campo)
+    }
+  })
+
+  it('en edición no deja vaciar un campo obligatorio que ya tenía valor', async () => {
+    const wrapper = mount(UsuarioForm, {
+      props: {
+        modo: 'edit',
+        valoresIniciales: {
+          nombre: 'Carlos',
+          apellido: 'Ramírez',
+          correo: 'carlos@test.com',
+          telefono: '987654321',
+          genero: 'Varon',
+        },
+      },
+    })
+    expect(wrapper.get('label[for="usuario-telefono"]').text()).toBe('Teléfono *')
+    expect(wrapper.get('label[for="usuario-apodo"]').text()).toBe('Apodo')
+
+    await wrapper.get('#usuario-telefono').setValue('')
+    await wrapper.get('form').trigger('submit')
+
+    expect(wrapper.emitted('submit')).toBeUndefined()
+    expect(wrapper.get('#error-telefono').text()).toContain('de 6 a 12 dígitos')
   })
 })

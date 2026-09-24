@@ -225,7 +225,7 @@ const iconoPlan = computed(() => {
 }
 
 .plan-card--destacado {
-  border-color: rgba(229, 9, 20, 0.58);
+  border-color: rgba(var(--gb-red-rgb), 0.58);
 }
 
 .plan-card__cinta {
@@ -261,7 +261,7 @@ const iconoPlan = computed(() => {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: var(--gb-radius);
-  background: rgba(229, 9, 20, 0.1);
+  background: rgba(var(--gb-red-rgb), 0.1);
   border: 1px solid rgba(225, 29, 20, 0.3);
   color: var(--gb-red-text);
   flex-shrink: 0;

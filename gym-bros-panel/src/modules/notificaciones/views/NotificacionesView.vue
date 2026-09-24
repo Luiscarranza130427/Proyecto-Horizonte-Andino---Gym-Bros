@@ -1,6 +1,6 @@
 <script setup>
 import { AlertTriangle, Bell, CheckCircle2, Clock, History, Plus, Search } from 'lucide-vue-next'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
@@ -19,6 +19,7 @@ import {
   obtenerNotificacionesProgramadas,
   obtenerNotificacionesRecibidas,
 } from '@/modules/notificaciones/services/notificaciones.service'
+import { useDebounce } from '@/shared/composables/useDebounce'
 import { formatearNumero } from '@/shared/utils/formato'
 
 const route = useRoute()
@@ -49,9 +50,12 @@ const procesandoAccion = ref(false)
 // Enviadas
 const enviadas = ref([])
 const paginacionEnviadas = ref({ pagina: 1, porPagina: 6, total: 0, ultimaPagina: 1 })
+let solicitudEnviadas = 0
 const cargandoEnviadas = ref(false)
 const filtroTipo = ref('')
 const busquedaTexto = ref('')
+// Una petición por pausa al teclear, no una por tecla.
+const busquedaAplicada = useDebounce(busquedaTexto, 300)
 
 // Recibidas
 const recibidas = ref([])
@@ -74,7 +78,7 @@ const PESTANAS = [
 
 function cambiarPestana(id) {
   pestanaActiva.value = id
-  router.replace({ query: { ...route.query, tab: id } })
+  router.replace({ query: { ...route.query, tab: id } }).catch(() => {})
 }
 
 watch(
@@ -87,13 +91,21 @@ watch(
   { immediate: true },
 )
 
+let temporizadorAviso = null
+
 function mostrarAviso(texto, tipo = 'success') {
   mensajeAviso.value = texto
   tipoAviso.value = tipo
-  setTimeout(() => {
-    if (mensajeAviso.value === texto) mensajeAviso.value = ''
+  clearTimeout(temporizadorAviso)
+  temporizadorAviso = setTimeout(() => {
+    mensajeAviso.value = ''
   }, 5000)
 }
+
+onBeforeUnmount(() => {
+  clearTimeout(temporizadorAviso)
+  solicitudEnviadas += 1
+})
 
 async function cargarRecibidas() {
   cargandoRecibidas.value = true
@@ -118,20 +130,25 @@ async function cargarProgramadas() {
 }
 
 async function cargarEnviadas(pagina = 1) {
+  // Si llega antes la respuesta de un filtro anterior, se descarta: si no, el
+  // historial podía quedar mostrando resultados de una búsqueda ya cambiada.
+  const idSolicitud = ++solicitudEnviadas
   cargandoEnviadas.value = true
   try {
     const respuesta = await obtenerNotificacionesEnviadas({
       pagina,
       porPagina: 6,
       tipo: filtroTipo.value,
-      busqueda: busquedaTexto.value,
+      busqueda: busquedaAplicada.value.trim(),
     })
+    if (idSolicitud !== solicitudEnviadas) return
     enviadas.value = respuesta.items
     paginacionEnviadas.value = respuesta.paginacion
   } catch (error) {
+    if (idSolicitud !== solicitudEnviadas) return
     mostrarAviso(error?.message || 'No pudimos cargar el historial de notificaciones.', 'danger')
   } finally {
-    cargandoEnviadas.value = false
+    if (idSolicitud === solicitudEnviadas) cargandoEnviadas.value = false
   }
 }
 
@@ -141,7 +158,7 @@ onMounted(() => {
   cargarEnviadas(1)
 })
 
-watch([filtroTipo, busquedaTexto], () => {
+watch([filtroTipo, busquedaAplicada], () => {
   cargarEnviadas(1)
 })
 
@@ -204,10 +221,7 @@ async function confirmarEliminar() {
   try {
     await eliminarNotificacion(id)
     mostrarAviso('Notificación cancelada y eliminada.')
-    await Promise.all([
-      cargarProgramadas(),
-      cargarEnviadas(paginacionEnviadas.value.paginaActual || 1),
-    ])
+    await Promise.all([cargarProgramadas(), cargarEnviadas(paginacionEnviadas.value.pagina || 1)])
   } catch (error) {
     mostrarAviso(error?.message || 'No pudimos eliminar la notificación.', 'danger')
   } finally {
@@ -230,8 +244,8 @@ function duplicarNotificacion(notificacion) {
 }
 
 const paginasEnviadas = computed(() => {
-  const total = paginacionEnviadas.value.totalPaginas || 1
-  const actual = paginacionEnviadas.value.paginaActual || 1
+  const total = paginacionEnviadas.value.ultimaPagina || 1
+  const actual = paginacionEnviadas.value.pagina || 1
   if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
   let inicio = Math.max(1, actual - 2)
   const fin = Math.min(total, inicio + 4)
@@ -273,8 +287,7 @@ const paginasEnviadas = computed(() => {
         type="button"
         class="notificaciones__tab"
         :class="{ 'notificaciones__tab--activa': pestanaActiva === pestana.id }"
-        :aria-selected="pestanaActiva === pestana.id"
-        role="tab"
+        :aria-current="pestanaActiva === pestana.id ? 'true' : null"
         @click="cambiarPestana(pestana.id)"
       >
         <component :is="pestana.icono" :size="16" aria-hidden="true" />
@@ -284,7 +297,7 @@ const paginasEnviadas = computed(() => {
           v-if="pestana.id === 'recibidas' && recibidas.length > 0"
           class="notificaciones__tab-badge"
         >
-          {{ recibidas.filter((notificacion) => !notificacion.leida).length || recibidas.length }}
+          {{ recibidas.length }}
         </span>
 
         <span
@@ -388,9 +401,12 @@ const paginasEnviadas = computed(() => {
             <span class="notificaciones__icono-busqueda" aria-hidden="true">
               <Search :size="16" />
             </span>
+            <label class="visually-hidden" for="busqueda-notif">Buscar en el historial</label>
             <input
+              id="busqueda-notif"
               v-model="busquedaTexto"
-              type="text"
+              type="search"
+              maxlength="150"
               class="form-control notificaciones__input-busqueda"
               placeholder="Buscar por título, mensaje o destinatario..."
             />
@@ -428,12 +444,12 @@ const paginasEnviadas = computed(() => {
 
           <!-- Paginación -->
           <footer
-            v-if="paginacionEnviadas.totalPaginas > 1"
+            v-if="paginacionEnviadas.ultimaPagina > 1"
             class="notificaciones__paginacion gb-tarjeta"
           >
             <p>
-              Página {{ formatearNumero(paginacionEnviadas.paginaActual) }} de
-              {{ formatearNumero(paginacionEnviadas.totalPaginas) }} ({{
+              Página {{ formatearNumero(paginacionEnviadas.pagina) }} de
+              {{ formatearNumero(paginacionEnviadas.ultimaPagina) }} ({{
                 formatearNumero(paginacionEnviadas.total)
               }}
               notificaciones)
@@ -442,8 +458,8 @@ const paginasEnviadas = computed(() => {
               <button
                 type="button"
                 class="btn btn-ghost btn-sm"
-                :disabled="paginacionEnviadas.paginaActual <= 1"
-                @click="cargarEnviadas(paginacionEnviadas.paginaActual - 1)"
+                :disabled="paginacionEnviadas.pagina <= 1"
+                @click="cargarEnviadas(paginacionEnviadas.pagina - 1)"
               >
                 Anterior
               </button>
@@ -453,7 +469,7 @@ const paginasEnviadas = computed(() => {
                 type="button"
                 class="notificaciones__btn-pagina"
                 :class="{
-                  'notificaciones__btn-pagina--activa': p === paginacionEnviadas.paginaActual,
+                  'notificaciones__btn-pagina--activa': p === paginacionEnviadas.pagina,
                 }"
                 @click="cargarEnviadas(p)"
               >
@@ -462,8 +478,8 @@ const paginasEnviadas = computed(() => {
               <button
                 type="button"
                 class="btn btn-ghost btn-sm"
-                :disabled="paginacionEnviadas.paginaActual >= paginacionEnviadas.totalPaginas"
-                @click="cargarEnviadas(paginacionEnviadas.paginaActual + 1)"
+                :disabled="paginacionEnviadas.pagina >= paginacionEnviadas.ultimaPagina"
+                @click="cargarEnviadas(paginacionEnviadas.pagina + 1)"
               >
                 Siguiente
               </button>

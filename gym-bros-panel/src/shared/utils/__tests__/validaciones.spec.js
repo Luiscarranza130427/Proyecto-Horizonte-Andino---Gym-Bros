@@ -4,8 +4,10 @@ import {
   esColorValido,
   esCorreoValido,
   esFechaPasada,
+  esTelefonoConLimite,
   esTelefonoValido,
   esUrlValida,
+  limpiarTelefono,
 } from '@/shared/utils/validaciones'
 
 describe('esCorreoValido', () => {
@@ -43,6 +45,29 @@ describe('esTelefonoValido', () => {
     expect(esTelefonoValido('987-654-abc')).toBe(false)
     expect(esTelefonoValido('(01) 234 5678')).toBe(false)
     expect(esTelefonoValido('')).toBe(false)
+  })
+})
+
+describe('esTelefonoConLimite', () => {
+  it('cuenta la longitud que se guardará, sin espacios ni guiones', () => {
+    expect(esTelefonoConLimite('976 123-456', 9)).toBe(true)
+    expect(esTelefonoConLimite('+51 976 123 456', 9)).toBe(false)
+    expect(esTelefonoConLimite('+51 976 123 456', 12)).toBe(true)
+  })
+
+  it('exige al menos seis dígitos y sólo admite el + inicial', () => {
+    expect(esTelefonoConLimite('12345', 9)).toBe(false)
+    expect(esTelefonoConLimite('123456', 9)).toBe(true)
+    expect(esTelefonoConLimite('97a123456', 9)).toBe(false)
+    expect(esTelefonoConLimite('976+12345', 9)).toBe(false)
+    expect(esTelefonoConLimite(null, 9)).toBe(false)
+  })
+})
+
+describe('limpiarTelefono', () => {
+  it('quita espacios y guiones y tolera valores ausentes', () => {
+    expect(limpiarTelefono(' 976 123-456 ')).toBe('976123456')
+    expect(limpiarTelefono(undefined)).toBe('')
   })
 })
 

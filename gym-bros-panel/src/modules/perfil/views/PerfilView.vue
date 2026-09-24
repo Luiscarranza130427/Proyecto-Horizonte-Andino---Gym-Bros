@@ -10,7 +10,6 @@ import {
 } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 
-import { useAuthStore } from '@/core/auth/auth.store'
 import { useTenantStore } from '@/core/tenant/tenant.store'
 import PerfilDatosForm from '@/modules/perfil/components/PerfilDatosForm.vue'
 import PerfilEmpresaCard from '@/modules/perfil/components/PerfilEmpresaCard.vue'
@@ -20,7 +19,6 @@ import PerfilSeguridadForm from '@/modules/perfil/components/PerfilSeguridadForm
 import * as perfilService from '@/modules/perfil/services/perfil.service'
 import PageHeader from '@/shared/components/PageHeader.vue'
 
-const auth = useAuthStore()
 const tenant = useTenantStore()
 
 const PESTANAS = [
@@ -91,13 +89,14 @@ async function guardarDatosPersonales(datos) {
     const actualizado = await perfilService.actualizarPerfil({ ...datos, id: perfil.value.id })
     perfil.value = { ...perfil.value, ...actualizado }
 
-    // Sincronizar nombre en auth store para que AppHeader y UserMenu se actualicen
-    if (auth.usuario) {
-      auth.usuario = {
-        ...auth.usuario,
-        nombre: actualizado.nombre || auth.usuario.nombre,
-      }
-    }
+    // Estos son datos de la EMPRESA: se refleja su nombre en el shell (tenant).
+    // Antes se escribía en el usuario de la sesión y el menú pasaba a mostrar
+    // «Titan Gym» en lugar de la persona que inició sesión.
+    tenant.fijarTenant({
+      ...(tenant.tenant || {}),
+      id: perfil.value.id,
+      nombre: actualizado.nombre || perfil.value.nombre,
+    })
 
     mostrarAviso('Datos de la sede guardados con éxito.', 'success')
   } catch (err) {
@@ -113,7 +112,10 @@ async function cambiarClave(datos) {
     const res = await perfilService.cambiarContrasena(datos)
     mostrarAviso(res.mensaje || 'Contraseña actualizada correctamente.', 'success')
   } catch (err) {
-    mostrarAviso(err.message || 'Error al cambiar contraseña.', 'danger')
+    // Un 422 trae el motivo por campo (p. ej. «contraseña actual incorrecta»);
+    // el mensaje general sólo dice que los datos no son válidos.
+    const motivo = Object.values(err?.errors ?? {}).flat()[0]
+    mostrarAviso(motivo || err.message || 'Error al cambiar contraseña.', 'danger')
   } finally {
     cambiandoClave.value = false
   }
@@ -149,23 +151,15 @@ async function cerrarOtrasSesiones() {
 
 async function cambiarFoto({ url }) {
   try {
-    const actualizado = await perfilService.actualizarPerfil({
-      ...perfil.value,
-      logo: url,
-      fotoPerfil: url,
-    })
-    perfil.value = { ...perfil.value, ...actualizado, logo: url, fotoPerfil: url }
-    if (auth.usuario) {
-      auth.usuario = {
-        ...auth.usuario,
-        foto: url,
-      }
-    }
+    // El logo es de la empresa: no se toca la foto personal del usuario.
+    const { logoUrl } = await perfilService.actualizarLogoEmpresa(perfil.value.id, url)
+    const logo = logoUrl || url
+    perfil.value = { ...perfil.value, logo, fotoPerfil: logo }
     tenant.fijarTenant({
       ...(tenant.tenant || {}),
       id: perfil.value.id,
       nombre: perfil.value.nombre,
-      logo: url,
+      logo,
     })
     mostrarAviso('Logo de la empresa actualizado con éxito.', 'success')
   } catch (err) {

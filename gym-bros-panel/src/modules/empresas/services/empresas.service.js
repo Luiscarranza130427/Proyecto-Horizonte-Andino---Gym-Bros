@@ -8,6 +8,7 @@ import {
 } from '@/core/api/normalizacion'
 import { USE_MOCKS } from '@/core/config/env'
 import { HttpError } from '@/core/api/http-error'
+import { valorRegion } from '@/shared/constants/regionesPeru'
 import { resolverUrlStorage } from '@/shared/utils/storage'
 
 const cargarMock = () => import('@/modules/empresas/mocks/empresas.mock')
@@ -78,7 +79,8 @@ function normalizarEmpresa(datos = {}) {
     ruc: datos.ruc ?? datos.tax_id ?? '',
     correo: datos.correo ?? datos.email ?? '',
     telefono: datos.telefono ?? datos.phone ?? '',
-    region: datos.region ?? '',
+    // Valor del catálogo de la API (sin tildes) aunque se haya guardado con ellas.
+    region: valorRegion(datos.region),
     direccion: datos.direccion ?? '',
     sitioWeb: datos.enlace_web ?? datos.sitio_web ?? datos.sitioWeb ?? datos.website ?? '',
     estado: normalizarEstado(datos.estado ?? datos.status),
@@ -185,23 +187,14 @@ export async function obtenerEmpresas(params = {}) {
 export async function obtenerEmpresa(id) {
   if (USE_MOCKS) return (await cargarMock()).obtenerEmpresaMock(id)
 
+  // La API devolvía una empresa vacía por un binding mal nombrado y aquí se
+  // descargaba el listado completo como rodeo. Corregido en la API: basta el detalle.
   return ejecutarPeticion(async () => {
-    try {
-      const { data } = await api.get(`/empresas/${id}`)
-      const respuesta = normalizarEmpresa(data.data ?? data)
-      // Laravel responde 200 con un objeto vacío (campos null) para este endpoint.
-      // En ese caso el listado es la fuente real de datos.
-      if (respuesta.id !== null && respuesta.id !== undefined && respuesta.nombre) {
-        return respuesta
-      }
-    } catch (error) {
-      const status = error?.status ?? error?.response?.status
-      if (status !== 404 && status !== 405) throw error
+    const { data } = await api.get(`/empresas/${id}`)
+    const empresa = normalizarEmpresa(data?.data ?? data)
+    if (empresa.id === null || empresa.id === undefined) {
+      throw new HttpError(404, 'La empresa solicitada no existe.')
     }
-
-    const { items } = await obtenerEmpresas({ pagina: 1, porPagina: 10000 })
-    const empresa = items.find((item) => Number(item.id) === Number(id))
-    if (!empresa) throw new HttpError(404, 'La empresa solicitada no existe.')
     return empresa
   })
 }

@@ -52,11 +52,15 @@ describe('banners.service', () => {
     })
 
     const datosCreacion = post.mock.calls[0][1]
-    const datosEdicion = put.mock.calls[0][1]
+    const datosEdicion = post.mock.calls[1][1]
     expect(post.mock.calls[0][0]).toBe('/banners')
     expect(datosCreacion).toBeInstanceOf(FormData)
     expect(datosCreacion.get('imagen')).toBe(imagen)
-    expect(put.mock.calls[0][0]).toBe('/banners/1')
+    // Multipart en PUT llega vacío a PHP: la edición viaja como POST + _method=PUT.
+    expect(put).not.toHaveBeenCalled()
+    expect(post.mock.calls[1][0]).toBe('/banners/1')
+    expect(datosEdicion.get('_method')).toBe('PUT')
+    expect(datosEdicion.get('contenido_text')).toBe('Texto')
     expect(datosEdicion.get('imagen')).toBeNull()
   })
 

@@ -49,7 +49,7 @@ class GymCompany {
     return GymCompany(
       id: id.toInt(),
       name: name.trim(),
-      logoUrl: _resolveLogoUrl(json['logo'], mediaBaseUri),
+      logoUrl: _resolveLogoUrl(json['logo_url'] ?? json['logo'], mediaBaseUri),
       manager: _text(json['nombre_gerente']),
       region: _text(json['region']),
       ruc: _text(json['ruc']),
@@ -62,9 +62,9 @@ class GymCompany {
       primaryColorHex: _text(json['color_1']),
       secondaryColorHex: _text(json['color_2']),
       bannerUrls: _mediaList([
-        json['banner_1'],
-        json['banner_2'],
-        json['banner_3'],
+        json['banner_1_url'] ?? json['banner_1'],
+        json['banner_2_url'] ?? json['banner_2'],
+        json['banner_3_url'] ?? json['banner_3'],
       ], mediaBaseUri),
       actionLinks: [
         _text(json['link_boton_1']),

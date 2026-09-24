@@ -51,11 +51,13 @@ export async function crearBanner(datos) {
 }
 
 export async function actualizarBanner(id, datos) {
+  // PHP no interpreta multipart/form-data en un PUT: el cuerpo llegaba vacío,
+  // la API respondía 200 sin cambiar nada y el panel anunciaba el guardado.
+  // Se envía como POST y Laravel lo enruta como PUT por `_method`.
   return ejecutar(async () => {
-    const { data } = await api.put(
-      `/banners/${id}`,
-      crearFormData(datos, datos.imagen instanceof File),
-    )
+    const formulario = crearFormData(datos, datos.imagen instanceof File)
+    formulario.append('_method', 'PUT')
+    const { data } = await api.post(`/banners/${id}`, formulario)
     return normalizarBanner(data.data ?? data)
   })
 }

@@ -78,6 +78,10 @@ watch(() => route.params.id, cargar, { immediate: true })
 onBeforeUnmount(() => {
   solicitudActual += 1
 })
+
+function cancelar() {
+  router.push({ name: 'usuarios-listado' }).catch(() => {})
+}
 </script>
 
 <template>
@@ -114,7 +118,7 @@ onBeforeUnmount(() => {
       :enviando="enviando"
       :errores-servidor="erroresServidor"
       @submit="guardar"
-      @cancel="router.push({ name: 'usuarios-listado' })"
+      @cancel="cancelar"
     />
     <section
       v-else

@@ -16,9 +16,24 @@ class AlimentoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return AlimentoResource::collection(Alimento::where('activo', true)->orderBy('id')->get());
+        $datos = $request->validate([
+            'search' => ['nullable', 'string', 'max:150'],
+            'type' => ['nullable', 'string', 'max:50'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'between:1,100'],
+        ]);
+        $query = Alimento::where('activo', true)->orderBy('id');
+        if (! empty($datos['search'])) {
+            $query->where('nombre', 'like', '%'.$datos['search'].'%');
+        }
+        if (! empty($datos['type'])) {
+            $query->where('tipo', $datos['type']);
+        }
+
+        return AlimentoResource::collection(isset($datos['page']) || isset($datos['per_page'])
+            ? $query->paginate($datos['per_page'] ?? 12)->withQueryString() : $query->get());
     }
 
     /**

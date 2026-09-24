@@ -3,12 +3,23 @@ import { Building2, Camera, Trash2, User, UserRound } from 'lucide-vue-next'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import { FOTO_USUARIO_LADO, normalizarFotoUsuario } from '@/shared/utils/fotoUsuario'
+import { esCorreoValido, esTelefonoConLimite, limpiarTelefono } from '@/shared/utils/validaciones'
 
 const props = defineProps({
   usuarioInicial: { type: Object, default: () => ({}) },
   // Alias usado por algunas vistas; se mantiene usuarioInicial por compatibilidad.
   valoresIniciales: { type: Object, default: null },
   empresas: { type: Array, default: () => [] },
+  // Roles que la sesión puede asignar: los da el servicio (`obtenerRolesAsignables`).
+  roles: {
+    type: Array,
+    default: () => [
+      { valor: 'admin', etiqueta: 'Administrador' },
+      { valor: 'manager', etiqueta: 'Empresa' },
+      { valor: 'trainer', etiqueta: 'Entrenador' },
+      { valor: 'member', etiqueta: 'Usuario' },
+    ],
+  },
   enviando: { type: Boolean, default: false },
   erroresServidor: { type: Object, default: () => ({}) },
   modo: { type: String, default: 'create' },
@@ -28,6 +39,7 @@ const nombreInput = ref(null)
 const apellidoInput = ref(null)
 const apodoInput = ref(null)
 const correoInput = ref(null)
+const telefonoInput = ref(null)
 const tipoDocumentoInput = ref(null)
 const numeroDocumentoInput = ref(null)
 const fechaNacimientoInput = ref(null)
@@ -44,6 +56,7 @@ const refsCampos = {
   apellido: apellidoInput,
   apodo: apodoInput,
   correo: correoInput,
+  telefono: telefonoInput,
   tipoDocumento: tipoDocumentoInput,
   numeroDocumento: numeroDocumentoInput,
   fechaNacimiento: fechaNacimientoInput,
@@ -185,35 +198,67 @@ function limpiarError(campo) {
   }
 }
 
+/*
+ * Campos que la API exige al crear (`UsuarioController::store`). Al editar son
+ * `sometimes|required`: se pueden omitir pero no vaciar. Por eso en edición
+ * sólo son obligatorios los que ya tenían valor, y los que siguen vacíos no se
+ * envían (antes viajaban como '' o null y la API respondía 422).
+ */
+const CAMPOS_OBLIGATORIOS_API = [
+  'apodo',
+  'telefono',
+  'numeroDocumento',
+  'fechaNacimiento',
+  'genero',
+]
+
+const valoresOriginales = computed(() => crearEstadoInicial())
+
+function esObligatorio(campo) {
+  if (props.modo === 'create') return true
+  return Boolean(String(valoresOriginales.value[campo] ?? '').trim())
+}
+
 function validar() {
   const nuevos = {}
   const f = formulario.value
 
   if (!f.nombre.trim()) nuevos.nombre = ['Introduce un nombre.']
   if (!f.apellido.trim()) nuevos.apellido = ['Introduce un apellido.']
+  if (!f.apodo.trim() && esObligatorio('apodo')) nuevos.apodo = ['Introduce un apodo.']
 
-  const correo = f.correo.trim()
-  if (!correo) {
-    nuevos.correo = ['Introduce un correo válido.']
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-    nuevos.correo = ['Introduce un correo válido.']
+  if (!esCorreoValido(f.correo)) nuevos.correo = ['Introduce un correo válido.']
+
+  // `usuarios.telefono` y `usuarios.numero_documento` son varchar(12).
+  if ((f.telefono.trim() || esObligatorio('telefono')) && !esTelefonoConLimite(f.telefono, 12)) {
+    nuevos.telefono = ['Introduce un teléfono de 6 a 12 dígitos.']
   }
 
   const numDoc = f.numeroDocumento.trim()
-  if (f.tipoDocumento === 'dni') {
-    if (numDoc && !/^\d{8}$/.test(numDoc)) {
+  if (!numDoc) {
+    if (esObligatorio('numeroDocumento')) {
+      nuevos.numeroDocumento = ['Introduce el número de documento.']
+    }
+  } else if (f.tipoDocumento === 'dni') {
+    if (!/^\d{8}$/.test(numDoc)) {
       nuevos.numeroDocumento = ['El DNI debe tener exactamente 8 dígitos.']
     }
-  } else if (numDoc && (numDoc.length < 5 || numDoc.length > 20)) {
-    nuevos.numeroDocumento = ['El documento debe tener entre 5 y 20 caracteres.']
+  } else if (numDoc.length < 5 || numDoc.length > 12) {
+    nuevos.numeroDocumento = ['El documento debe tener entre 5 y 12 caracteres.']
   }
 
   if (f.fechaNacimiento) {
     const hoy = new Date().toISOString().slice(0, 10)
     if (f.fechaNacimiento > hoy) {
       nuevos.fechaNacimiento = ['La fecha de nacimiento no puede ser futura.']
+    } else if (f.fechaNacimiento < '1900-01-01') {
+      nuevos.fechaNacimiento = ['Introduce una fecha de nacimiento válida.']
     }
+  } else if (esObligatorio('fechaNacimiento')) {
+    nuevos.fechaNacimiento = ['Introduce la fecha de nacimiento.']
   }
+
+  if (!f.genero && esObligatorio('genero')) nuevos.genero = ['Selecciona el género.']
 
   if (props.modo === 'create') {
     if (!f.empresaId) nuevos.empresaId = ['Selecciona una empresa.']
@@ -232,16 +277,24 @@ async function enviar() {
   }
 
   const f = formulario.value
+  const obligatorios = {
+    apodo: f.apodo.trim(),
+    telefono: limpiarTelefono(f.telefono.trim()),
+    numeroDocumento: f.numeroDocumento.trim(),
+    fechaNacimiento: f.fechaNacimiento,
+    genero: f.genero,
+  }
   const payload = {
-    ...(props.modo === 'edit' ? { genero: f.genero || null } : {}),
     nombre: f.nombre.trim(),
     apellido: f.apellido.trim(),
-    apodo: f.apodo.trim(),
-    correo: f.correo.trim(),
-    telefono: f.telefono.trim(),
+    correo: f.correo.trim().toLowerCase(),
     tipoDocumento: f.tipoDocumento,
-    numeroDocumento: f.numeroDocumento.trim(),
-    fechaNacimiento: f.fechaNacimiento || null,
+    ...Object.fromEntries(
+      CAMPOS_OBLIGATORIOS_API.filter((campo) => obligatorios[campo]).map((campo) => [
+        campo,
+        obligatorios[campo],
+      ]),
+    ),
     ...(props.modo === 'edit'
       ? {
           ...(f.inicioSuscripcion ? { inicioSuscripcion: f.inicioSuscripcion } : {}),
@@ -430,16 +483,22 @@ function enfocarPrimerError() {
         </div>
 
         <div class="campo">
-          <label class="form-label" for="usuario-apodo">Apodo</label>
+          <label class="form-label" for="usuario-apodo">
+            Apodo{{ esObligatorio('apodo') ? ' *' : '' }}
+          </label>
           <input
             id="usuario-apodo"
             ref="apodoInput"
             v-model="formulario.apodo"
             class="form-control"
+            :class="{ 'is-invalid': errorDe('apodo') }"
             type="text"
             name="apodo"
             maxlength="80"
             autocomplete="nickname"
+            :required="esObligatorio('apodo')"
+            :aria-invalid="Boolean(errorDe('apodo'))"
+            :aria-describedby="errorDe('apodo') ? 'error-apodo' : null"
             @input="limpiarError('apodo')"
           />
           <p v-if="errorDe('apodo')" id="error-apodo" class="campo__error">
@@ -470,16 +529,27 @@ function enfocarPrimerError() {
         </div>
 
         <div class="campo">
-          <label class="form-label" for="usuario-telefono">Teléfono</label>
+          <label class="form-label" for="usuario-telefono">
+            Teléfono{{ esObligatorio('telefono') ? ' *' : '' }}
+          </label>
           <input
             id="usuario-telefono"
+            ref="telefonoInput"
             v-model="formulario.telefono"
             class="form-control"
+            :class="{ 'is-invalid': errorDe('telefono') }"
             type="tel"
             name="telefono"
+            maxlength="15"
             autocomplete="tel"
+            :required="esObligatorio('telefono')"
+            :aria-invalid="Boolean(errorDe('telefono'))"
+            :aria-describedby="errorDe('telefono') ? 'error-telefono' : null"
+            @input="limpiarError('telefono')"
           />
-          <p v-if="errorDe('telefono')" class="campo__error">{{ errorDe('telefono') }}</p>
+          <p v-if="errorDe('telefono')" id="error-telefono" class="campo__error">
+            {{ errorDe('telefono') }}
+          </p>
         </div>
 
         <div class="campo campo--documento">
@@ -502,7 +572,9 @@ function enfocarPrimerError() {
             </p>
           </div>
           <div>
-            <label class="form-label" for="usuario-documento">Número de documento *</label>
+            <label class="form-label" for="usuario-documento">
+              Número de documento{{ esObligatorio('numeroDocumento') ? ' *' : '' }}
+            </label>
             <input
               id="usuario-documento"
               ref="numeroDocumentoInput"
@@ -511,7 +583,8 @@ function enfocarPrimerError() {
               :class="{ 'is-invalid': errorDe('numeroDocumento') }"
               type="text"
               name="numeroDocumento"
-              maxlength="20"
+              maxlength="12"
+              :required="esObligatorio('numeroDocumento')"
               :aria-invalid="Boolean(errorDe('numeroDocumento'))"
               :aria-describedby="errorDe('numeroDocumento') ? 'error-documento' : null"
               @input="limpiarError('numeroDocumento')"
@@ -523,7 +596,9 @@ function enfocarPrimerError() {
         </div>
 
         <div class="campo">
-          <label class="form-label" for="usuario-nacimiento">Fecha de nacimiento</label>
+          <label class="form-label" for="usuario-nacimiento">
+            Fecha de nacimiento{{ esObligatorio('fechaNacimiento') ? ' *' : '' }}
+          </label>
           <input
             id="usuario-nacimiento"
             ref="fechaNacimientoInput"
@@ -532,6 +607,8 @@ function enfocarPrimerError() {
             :class="{ 'is-invalid': errorDe('fechaNacimiento') }"
             type="date"
             name="fechaNacimiento"
+            min="1900-01-01"
+            :required="esObligatorio('fechaNacimiento')"
             :aria-invalid="Boolean(errorDe('fechaNacimiento'))"
             :aria-describedby="errorDe('fechaNacimiento') ? 'error-nacimiento' : null"
             @input="limpiarError('fechaNacimiento')"
@@ -541,8 +618,10 @@ function enfocarPrimerError() {
           </p>
         </div>
 
-        <div v-if="modo === 'edit'" class="campo">
-          <label class="form-label" for="usuario-genero">Género</label>
+        <div class="campo">
+          <label class="form-label" for="usuario-genero">
+            Género{{ esObligatorio('genero') ? ' *' : '' }}
+          </label>
           <select
             id="usuario-genero"
             ref="generoInput"
@@ -551,11 +630,14 @@ function enfocarPrimerError() {
             :class="{ 'is-invalid': errorDe('genero') }"
             name="genero"
             :disabled="enviando"
+            :required="esObligatorio('genero')"
             :aria-invalid="Boolean(errorDe('genero'))"
             :aria-describedby="errorDe('genero') ? 'error-genero' : null"
             @change="limpiarError('genero')"
           >
-            <option value="">Sin especificar</option>
+            <option value="" :disabled="esObligatorio('genero')">
+              {{ esObligatorio('genero') ? 'Selecciona el género' : 'Sin especificar' }}
+            </option>
             <option value="Varon">Varón</option>
             <option value="Mujer">Mujer</option>
           </select>
@@ -606,6 +688,7 @@ function enfocarPrimerError() {
             v-model="formulario.direccion"
             class="form-control"
             rows="2"
+            maxlength="150"
             autocomplete="street-address"
           ></textarea>
         </div>
@@ -663,13 +746,12 @@ function enfocarPrimerError() {
             :aria-describedby="errorDe('rol') ? 'error-rol' : 'ayuda-rol'"
             @change="limpiarError('rol')"
           >
-            <option value="admin">Administrador</option>
-            <option value="manager">Empresa</option>
-            <option value="trainer">Entrenador</option>
-            <option value="member">Usuario</option>
+            <option v-for="opcion in roles" :key="opcion.valor" :value="opcion.valor">
+              {{ opcion.etiqueta }}
+            </option>
           </select>
           <p id="ayuda-rol" class="campo__ayuda">
-            Roles provisionales hasta cerrar permisos con Laravel.
+            Define qué puede hacer la persona en el panel y en la app.
           </p>
           <p v-if="errorDe('rol')" id="error-rol" class="campo__error">{{ errorDe('rol') }}</p>
         </div>
@@ -888,7 +970,7 @@ function enfocarPrimerError() {
 }
 .usuario-avatar-vista--con-imagen {
   border: 2px solid var(--gb-red);
-  box-shadow: 0 0 20px rgba(229, 9, 20, 0.25);
+  box-shadow: 0 0 20px rgba(var(--gb-red-rgb), 0.25);
 }
 .usuario-avatar-img {
   width: 100%;

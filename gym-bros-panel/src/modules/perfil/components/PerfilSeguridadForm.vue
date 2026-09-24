@@ -40,13 +40,17 @@ const mostrarNueva = ref(false)
 const mostrarConfirmacion = ref(false)
 const errores = reactive({})
 
+const LONGITUD_MINIMA = 12
+
 const fortaleza = computed(() => {
   const clave = formulario.nueva
   if (!clave) return { nivel: 0, texto: 'Ingresa una contraseña', color: 'transparent' }
-  if (clave.length < 6) return { nivel: 1, texto: 'Demasiado corta', color: 'var(--gb-error)' }
+  if (clave.length < LONGITUD_MINIMA) {
+    return { nivel: 1, texto: 'Demasiado corta', color: 'var(--gb-error)' }
+  }
 
   let puntos = 0
-  if (clave.length >= 8) puntos++
+  if (clave.length >= 16) puntos++
   if (/[A-Z]/.test(clave)) puntos++
   if (/[0-9]/.test(clave)) puntos++
   if (/[^A-Za-z0-9]/.test(clave)) puntos++
@@ -69,11 +73,19 @@ function validar() {
     valido = false
   }
 
+  // Misma política que la API (12+ caracteres con letras y números). Con 6 el
+  // formulario aceptaba claves que el servidor rechazaba con un error genérico.
   if (!formulario.nueva) {
     errores.nueva = 'Ingresa la nueva contraseña.'
     valido = false
-  } else if (formulario.nueva.length < 6) {
-    errores.nueva = 'La contraseña debe tener al menos 6 caracteres.'
+  } else if (formulario.nueva.length < LONGITUD_MINIMA) {
+    errores.nueva = `La contraseña debe tener al menos ${LONGITUD_MINIMA} caracteres.`
+    valido = false
+  } else if (!/[A-Za-z]/.test(formulario.nueva) || !/[0-9]/.test(formulario.nueva)) {
+    errores.nueva = 'La contraseña debe combinar letras y números.'
+    valido = false
+  } else if (formulario.nueva === formulario.actual) {
+    errores.nueva = 'La nueva contraseña debe ser distinta de la actual.'
     valido = false
   }
 

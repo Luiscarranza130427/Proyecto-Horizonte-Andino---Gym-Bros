@@ -619,7 +619,10 @@ class _RoutineSummary extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(routine.name.toUpperCase(), style: AppText.title.copyWith(fontSize: 16)),
+                Text(
+                  routine.name.toUpperCase(),
+                  style: AppText.title.copyWith(fontSize: 16),
+                ),
                 const SizedBox(height: 6),
                 Text(
                   '${routine.daysPerWeek} días/semana · $_durationLabel',

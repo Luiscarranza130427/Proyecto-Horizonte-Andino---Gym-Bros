@@ -111,9 +111,11 @@ class _AppShellState extends State<AppShell> {
     return created;
   }
 
+  // Las hojas se abren desde `_brandedContext` (dentro del Theme de la
+  // empresa): con `context` heredaban el rojo por defecto en los botones.
   void _openNewEvaluation() {
     showModalBottomSheet<void>(
-      context: context,
+      context: _brandedContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => NewMeasurementsSheet(
@@ -123,7 +125,10 @@ class _AppShellState extends State<AppShell> {
         onSaved: () {
           Navigator.of(sheetContext).pop();
           if (mounted) {
-            showAppMessage(context, 'Medidas registradas correctamente.');
+            showAppMessage(
+              _brandedContext,
+              'Medidas registradas correctamente.',
+            );
           }
         },
       ),
@@ -132,7 +137,7 @@ class _AppShellState extends State<AppShell> {
 
   void _openEditEvaluation() {
     showModalBottomSheet<void>(
-      context: context,
+      context: _brandedContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => EditMeasurementsSheet(
@@ -143,7 +148,7 @@ class _AppShellState extends State<AppShell> {
           Navigator.of(sheetContext).pop();
           if (mounted) {
             showAppMessage(
-              context,
+              _brandedContext,
               'Evaluación física actualizada correctamente.',
             );
           }
@@ -640,6 +645,10 @@ class _AppShellState extends State<AppShell> {
       ),
     );
     if (shouldLogout != true || !mounted) return;
+    // Revoca el token en la API y lo borra del almacenamiento seguro: antes
+    // solo se navegaba al login y el token seguía válido hasta expirar.
+    await _gymApi.logout();
+    if (!mounted) return;
     await Navigator.of(_brandedContext).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
     );

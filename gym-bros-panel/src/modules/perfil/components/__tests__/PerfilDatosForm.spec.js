@@ -8,9 +8,9 @@ describe('PerfilDatosForm.vue', () => {
     nombre: 'Titan Gym',
     nombre_gerente: 'Carlos Mendoza',
     correo: 'contacto@gymbros.pe',
-    telefono: '+51 976 123 456',
+    telefono: '976 123 456',
     ruc: '20609876541',
-    region: 'Cajamarca',
+    region: 'Junín',
     direccion: 'Av. Hoyos Rubio 123, Cajamarca',
     enlace_web: 'https://gymbros.pe',
   }
@@ -39,7 +39,30 @@ describe('PerfilDatosForm.vue', () => {
 
     await wrapper.find('form').trigger('submit.prevent')
     expect(wrapper.emitted('guardar')).toBeTruthy()
-    expect(wrapper.emitted('guardar')[0][0].nombre).toBe('Titan Gym')
+    expect(wrapper.emitted('guardar')[0][0]).toEqual(
+      expect.objectContaining({
+        nombre: 'Titan Gym',
+        // Sin separadores y con la región tal como la acepta la API (sin tilde).
+        telefono: '976123456',
+        region: 'Junin',
+      }),
+    )
+  })
+
+  it('rechaza un teléfono que no cabe en la columna y un correo inválido', async () => {
+    const wrapper = mount(PerfilDatosForm, {
+      props: { perfil: { ...perfilMock, telefono: '+51 976 123 456', correo: 'sin-arroba' } },
+    })
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.emitted('guardar')).toBeFalsy()
+    expect(wrapper.get('#error-empresa-telefono').text()).toContain('de 6 a 9 dígitos')
+    expect(wrapper.get('#error-empresa-correo').text()).toBe('Ingresa un correo válido.')
+    expect(wrapper.get('#empresa-correo').attributes('aria-describedby')).toBe(
+      'error-empresa-correo',
+    )
+    expect(wrapper.get('#empresa-ruc').attributes('maxlength')).toBe('12')
   })
 
   it('muestra error de validación si el nombre está vacío', async () => {

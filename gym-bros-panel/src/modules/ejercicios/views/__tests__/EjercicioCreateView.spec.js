@@ -36,7 +36,9 @@ const EJERCICIO = {
   nombre: 'Press de banca',
   tipo: 'fuerza',
   nivel: 'intermedio',
-  equipamiento: 'barra',
+  // Contrato real de `normalizarEjercicio`: el servicio entrega `equipo` e `imagen`.
+  equipo: 'barra',
+  imagen: 'http://api.test/storage/ejercicios/press.webp',
   descripcion: 'Empuje horizontal.',
   instrucciones: 'Empuja con control.',
   imagenEjercicio: 'ejercicios/press.webp',
@@ -157,6 +159,26 @@ describe('EjercicioEditView', () => {
       params: { id: 1 },
       query: { notice: 'updated' },
     })
+  })
+
+  it('carga el equipamiento guardado aunque no esté en el catálogo y muestra la imagen actual', async () => {
+    obtenerEjercicio.mockResolvedValue({ ...EJERCICIO, equipo: 'barra y banco' })
+    actualizarEjercicio.mockResolvedValue({ ...EJERCICIO })
+    const wrapper = mount(EjercicioEditView, OPCIONES)
+    await flushPromises()
+
+    // Antes el select quedaba vacío: el servicio da `equipo` y el form leía `equipamiento`.
+    expect(wrapper.get('#ejercicio-equipamiento').element.value).toBe('barra y banco')
+    expect(wrapper.get('img[alt="Imagen actual del ejercicio"]').attributes('src')).toBe(
+      'http://api.test/storage/ejercicios/press.webp',
+    )
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(actualizarEjercicio).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({ equipamiento: 'barra y banco', estado: 'active' }),
+    )
   })
 
   it('trata un 404 como pantalla propia, no como error recuperable', async () => {

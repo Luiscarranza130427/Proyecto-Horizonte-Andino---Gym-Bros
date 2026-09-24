@@ -20,7 +20,7 @@ class UpdateUsuarioRequest extends FormRequest
             'nombres' => ['sometimes', 'required', 'string', 'max:255'],
             'apellidos' => ['sometimes', 'required', 'string', 'max:255'],
             'apodo' => ['sometimes', 'required', 'string', 'max:100'],
-            'correo' => ['sometimes', 'required', 'email', 'max:255',
+            'correo' => ['sometimes', 'required', 'email', 'max:255', 'not_regex:/[\x00-\x1F\x7F]/',
                 Rule::unique('usuarios', 'correo')->ignore($this->route('id_usuario'), 'id')],
             'telefono' => ['sometimes', 'required', 'string', 'max:12'],
             'tipo_documento' => ['sometimes', 'required', Rule::in(['DNI', 'PASAPORTE', 'OTRO'])],

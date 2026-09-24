@@ -5,10 +5,15 @@ import { useRouter } from 'vue-router'
 
 import PageHeader from '@/shared/components/PageHeader.vue'
 import UsuarioForm from '@/modules/usuarios/components/UsuarioForm.vue'
-import { crearUsuario, obtenerOpcionesEmpresas } from '@/modules/usuarios/services/usuarios.service'
+import {
+  crearUsuario,
+  obtenerOpcionesEmpresas,
+  obtenerRolesAsignables,
+} from '@/modules/usuarios/services/usuarios.service'
 
 const router = useRouter()
 const empresas = ref([])
+const roles = obtenerRolesAsignables()
 const estadoOpciones = ref('loading')
 const enviando = ref(false)
 const erroresServidor = ref({})
@@ -51,6 +56,10 @@ async function guardar(datos) {
 }
 
 cargarOpciones()
+
+function cancelar() {
+  router.push({ name: 'usuarios-listado' }).catch(() => {})
+}
 </script>
 
 <template>
@@ -77,10 +86,11 @@ cargarOpciones()
     <UsuarioForm
       v-else-if="estadoOpciones === 'success'"
       :empresas="empresas"
+      :roles="roles"
       :enviando="enviando"
       :errores-servidor="erroresServidor"
       @submit="guardar"
-      @cancel="router.push({ name: 'usuarios-listado' })"
+      @cancel="cancelar"
     />
     <section v-else class="usuario-editor__estado gb-tarjeta" role="alert">
       <CloudOff :size="48" aria-hidden="true" />

@@ -120,7 +120,7 @@ const metaTipo = computed(() => obtenerMetadatosTipo(props.tipo))
 .notificacion-preview__mockup {
   padding: 1.25rem;
   background:
-    radial-gradient(circle at top, rgba(229, 9, 20, 0.08), transparent 70%),
+    radial-gradient(circle at top, rgba(var(--gb-red-rgb), 0.08), transparent 70%),
     var(--gb-surface-lowest);
   border: 1px dashed var(--gb-border);
   border-radius: var(--gb-radius-lg);

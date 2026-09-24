@@ -209,40 +209,55 @@ onBeforeUnmount(limpiarImagen)
         </div>
       </header>
       <div class="banners__campos">
-        <label class="campo campo--completo">
-          <span>Contenido *</span>
+        <!-- Los máximos son los de la API (StoreBannerRequest): 100, 20 y 300. -->
+        <div class="campo campo--completo">
+          <label for="banner-contenido">Contenido *</label>
           <textarea
+            id="banner-contenido"
             v-model="formulario.contenido"
             class="form-control"
             rows="3"
+            maxlength="100"
             :disabled="enviando"
+            :aria-invalid="Boolean(errores.contenido)"
+            :aria-describedby="errores.contenido ? 'error-banner-contenido' : null"
           />
-          <small v-if="errores.contenido" class="campo__error">{{ errores.contenido[0] }}</small>
-        </label>
-        <label class="campo">
-          <span>Texto del botón *</span>
+          <small v-if="errores.contenido" id="error-banner-contenido" class="campo__error">{{
+            errores.contenido[0]
+          }}</small>
+        </div>
+        <div class="campo">
+          <label for="banner-texto-boton">Texto del botón *</label>
           <input
+            id="banner-texto-boton"
             v-model="formulario.textoBoton"
             class="form-control"
             type="text"
-            maxlength="80"
+            maxlength="20"
             :disabled="enviando"
+            :aria-invalid="Boolean(errores.textoBoton)"
+            :aria-describedby="errores.textoBoton ? 'error-banner-texto-boton' : null"
           />
-          <small v-if="errores.textoBoton" class="campo__error">{{ errores.textoBoton[0] }}</small>
-        </label>
-        <label class="campo">
-          <span>Enlace del botón *</span>
+          <small v-if="errores.textoBoton" id="error-banner-texto-boton" class="campo__error">{{
+            errores.textoBoton[0]
+          }}</small>
+        </div>
+        <div class="campo">
+          <label for="banner-enlace-boton">Enlace del botón *</label>
           <input
+            id="banner-enlace-boton"
             v-model="formulario.enlaceBoton"
             class="form-control"
             type="text"
-            maxlength="500"
+            maxlength="300"
             :disabled="enviando"
+            :aria-invalid="Boolean(errores.enlaceBoton)"
+            :aria-describedby="errores.enlaceBoton ? 'error-banner-enlace-boton' : null"
           />
-          <small v-if="errores.enlaceBoton" class="campo__error">{{
+          <small v-if="errores.enlaceBoton" id="error-banner-enlace-boton" class="campo__error">{{
             errores.enlaceBoton[0]
           }}</small>
-        </label>
+        </div>
         <div class="campo campo--completo">
           <label for="banner-imagen">Imagen {{ esEdicion ? '(opcional)' : '*' }}</label>
           <div class="banners__imagen-control">
@@ -325,7 +340,7 @@ onBeforeUnmount(limpiarImagen)
     <ConfirmDialog
       :abierto="Boolean(bannerAEliminar)"
       titulo="¿Eliminar banner?"
-      descripcion="Se eliminará el registro del banner. El archivo de imagen no será eliminado."
+      :descripcion="`Se eliminará el banner «${bannerAEliminar?.contenido ?? ''}». El archivo de imagen no será eliminado.`"
       etiqueta-confirmar="Eliminar banner"
       etiqueta-confirmando="Eliminando…"
       :confirmando="eliminando"

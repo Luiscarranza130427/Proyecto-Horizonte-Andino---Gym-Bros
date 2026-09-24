@@ -24,13 +24,10 @@ export default mergeConfig(
         // Se mide sólo el código propio. Quedan fuera los mocks (datos de
         // desarrollo, no lógica), la configuración y los puntos de montaje.
         include: ['src/**/*.{js,vue}'],
-        exclude: [
-          'src/mocks/**',
-          'src/constants/**',
-          'src/main.js',
-          'src/App.vue',
-          '**/__tests__/**',
-        ],
+        // Los mocks viven en `src/modules/<modulo>/mocks/` desde la
+        // reestructuración por módulos; el antiguo `src/mocks/**` ya no
+        // excluía nada y los datos simulados contaban como código sin probar.
+        exclude: ['src/modules/*/mocks/**', 'src/main.js', 'src/App.vue', '**/__tests__/**'],
         /*
          * Trinquete, no objetivo de calidad: impide que la cobertura retroceda
          * sin que nadie se entere.
@@ -41,10 +38,10 @@ export default mergeConfig(
          * cobertura, subir también estos números.
          */
         thresholds: {
-          statements: 68,
-          branches: 69,
-          functions: 67,
-          lines: 70,
+          statements: 75,
+          branches: 72,
+          functions: 70,
+          lines: 77,
         },
       },
     },

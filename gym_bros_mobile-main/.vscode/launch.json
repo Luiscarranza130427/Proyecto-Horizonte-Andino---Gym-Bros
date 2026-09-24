@@ -2,12 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "GYM-BROS (dispositivo Flutter)",
+      "name": "GYM-BROS (emulador Android: API en 10.0.2.2:8000)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
       "flutterMode": "debug",
-      "toolArgs": ["--dart-define=APP_ENV=development", "--dart-define=API_BASE_URL=http://192.168.1.48:8000"]
+      "toolArgs": ["--dart-define=APP_ENV=development"]
+    },
+    {
+      "name": "GYM-BROS (teléfono físico: cambia la IP por la del equipo)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "toolArgs": ["--dart-define=APP_ENV=development", "--dart-define=API_BASE_URL=http://IP-DEL-EQUIPO:8000"]
     },
     {
       "name": "GYM-BROS (Chrome)",
@@ -17,4 +25,3 @@
     }
   ]
 }
-

@@ -56,4 +56,36 @@ describe('Tenant Store', () => {
     expect(store.nombreTenant).toBe('Gym Bros Central')
     expect(store.esActivo).toBe(true)
   })
+
+  it('pinta el panel con los colores de la empresa y los retira al salir', () => {
+    const raiz = document.documentElement.style
+    const store = useTenantStore()
+
+    store.fijarTenant({ id: 1, nombre: 'Titan Gym', color1: '#111111', color2: '#14ff5b' })
+    // El acento del panel (`--gb-red`) pasa a ser el color de la empresa,
+    // igual que en la app móvil. Antes sólo cambiaban unos pocos detalles.
+    expect(raiz.getPropertyValue('--gb-red')).toBe('#14ff5b')
+    expect(raiz.getPropertyValue('--gb-bg')).not.toBe('')
+    expect(raiz.getPropertyValue('--gb-tenant-secondary')).toBe('#14ff5b')
+
+    store.limpiarTenant()
+    expect(raiz.getPropertyValue('--gb-red')).toBe('')
+    expect(raiz.getPropertyValue('--gb-bg')).toBe('')
+    expect(raiz.getPropertyValue('--gb-tenant-secondary')).toBe('')
+  })
+
+  it('actualiza nombre, logo y colores al guardar la empresa de la sesión', () => {
+    const raiz = document.documentElement.style
+    const store = useTenantStore()
+    store.fijarTenant({ id: 1, nombre: 'Titan Gym', logo: '/logo.webp', color2: '#14ff5b' })
+
+    store.actualizarDesdeEmpresa({ id: 2, nombre: 'Otra', colorSecundario: '#00aeef' })
+    expect(raiz.getPropertyValue('--gb-red')).toBe('#14ff5b')
+
+    store.actualizarDesdeEmpresa({ id: 1, nombre: 'Titan Gym Pro', colorSecundario: '#00aeef' })
+    expect(store.nombreTenant).toBe('Titan Gym Pro')
+    expect(raiz.getPropertyValue('--gb-red')).toBe('#00aeef')
+    // Sin logo en la empresa guardada se conserva el que ya tenía el shell.
+    expect(store.tenant.logo).toBe('/logo.webp')
+  })
 })

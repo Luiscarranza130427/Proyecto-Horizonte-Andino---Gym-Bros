@@ -152,6 +152,29 @@ describe('usuarios.service con API Laravel', () => {
     expect(opciones).toEqual([{ id: 2, nombre: 'Segundo Fitness', estado: 'active' }])
   })
 
+  it('sólo deja asignar entrenador y usuario a una cuenta de empresa', async () => {
+    const { servicio } = await cargarServicio()
+    sessionStorage.setItem(
+      'gym_bros_session',
+      JSON.stringify({ usuario: { id: 9, rol: 'super_admin', tenantId: 1 } }),
+    )
+    expect(servicio.obtenerRolesAsignables().map(({ valor }) => valor)).toEqual([
+      'admin',
+      'manager',
+      'trainer',
+      'member',
+    ])
+
+    sessionStorage.setItem(
+      'gym_bros_session',
+      JSON.stringify({ usuario: { id: 5, rol: 'tenant_admin', tenantId: 2 } }),
+    )
+    expect(servicio.obtenerRolesAsignables()).toEqual([
+      { valor: 'trainer', etiqueta: 'Entrenador' },
+      { valor: 'member', etiqueta: 'Usuario' },
+    ])
+  })
+
   it('aplica búsqueda, filtros y paginación cuando Laravel devuelve un arreglo completo', async () => {
     const { servicio } = await cargarServicio()
 
@@ -174,14 +197,36 @@ describe('usuarios.service con API Laravel', () => {
     expect(inactivo.items.map(({ id }) => id)).toEqual([2])
   })
 
-  it('obtiene el detalle desde el listado mientras no exista GET /usuarios/:id', async () => {
-    const { servicio, get } = await cargarServicio()
+  it('pide solo el detalle con GET /usuarios/:id, sin descargar el listado', async () => {
+    const get = vi.fn(async (url) => {
+      if (url === '/usuarios/3') {
+        return {
+          data: {
+            data: {
+              id: 3,
+              nombres: 'Luis',
+              tipo_usuario: 'Entrenador',
+              id_empresas: 1,
+              empresa: { id: 1, nombre: 'Titan Gym' },
+            },
+          },
+        }
+      }
+      throw Object.assign(new Error('Usuario no encontrado.'), { status: 404 })
+    })
+    const { servicio } = await cargarServicio({ get })
 
     await expect(servicio.obtenerUsuario(3)).resolves.toEqual(
-      expect.objectContaining({ id: 3, nombre: 'Luis', rol: 'trainer' }),
+      expect.objectContaining({
+        id: 3,
+        nombre: 'Luis',
+        rol: 'trainer',
+        empresa: { id: 1, nombre: 'Titan Gym' },
+      }),
     )
     await expect(servicio.obtenerUsuario(999)).rejects.toMatchObject({ status: 404 })
-    expect(get).not.toHaveBeenCalledWith('/usuarios/3')
+    // Antes se pedía `/usuarios` completo (hasta 10 000 filas) para mostrar uno.
+    expect(get).not.toHaveBeenCalledWith('/usuarios', expect.anything())
   })
 
   it('serializa los valores del formulario al vocabulario actual de Laravel', async () => {

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gym_bros/services/gym_api.dart';
 import 'package:http/http.dart' as http;
@@ -117,13 +120,114 @@ void main() {
     expect(updated.phone, '999888777');
     expect(updated.address, 'Nueva Calle 123');
   });
+
+  test(
+    'no envía vacíos los campos que la API exige y permite vaciar la dirección',
+    () async {
+      late Map<String, dynamic> sent;
+      final api = GymApi(
+        client: MockClient((request) async {
+          sent = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response('{"id_usuario":1,"nombre":"Juan"}', 200);
+        }),
+      );
+      final baseUser = (await _testGymApi().fetchUserData(
+        'juan.perez@gmail.com',
+      )).user;
+
+      await api.updateUserData(
+        baseUser.copyWith(nickname: ' ', birthDate: '', address: ''),
+      );
+
+      // `sometimes|required`: un '' daba 422; omitirlo conserva el valor guardado.
+      expect(sent.containsKey('apodo'), isFalse);
+      expect(sent.containsKey('fecha_nacimiento'), isFalse);
+      expect(sent['direccion'], isNull);
+      expect(sent['numero_documento'], '70123456');
+    },
+  );
+
+  test(
+    'la foto nueva se sube a su endpoint después de guardar los datos',
+    () async {
+      final photo = File(
+        '${Directory.systemTemp.createTempSync('gymbros').path}/foto.png',
+      )..writeAsBytesSync([137, 80, 78, 71]);
+      final requests = <http.BaseRequest>[];
+      final api = GymApi(
+        mediaBaseUri: Uri.parse('http://192.168.1.56/'),
+        client: MockClient.streaming((request, bodyStream) async {
+          requests.add(request);
+          await bodyStream.drain<void>();
+          final body = request.url.path.endsWith('/foto-perfil')
+              ? '{"foto_perfil":"usuario/nueva.png","foto_url":"http://192.168.1.56/storage/usuario/nueva.png"}'
+              : '{"id_usuario":1,"nombre":"Juan"}';
+          return http.StreamedResponse(Stream.value(utf8.encode(body)), 200);
+        }),
+      );
+      final baseUser = (await _testGymApi().fetchUserData(
+        'juan.perez@gmail.com',
+      )).user;
+
+      final saved = await api.updateUserData(
+        baseUser,
+        localPhotoPath: photo.path,
+      );
+
+      // Antes el archivo viajaba dentro del PUT, la API lo ignoraba y la app
+      // mostraba la foto local como si estuviera guardada.
+      expect(requests.map((r) => '${r.method} ${r.url.path}'), [
+        'PUT /api/usuarios/1',
+        'POST /api/usuarios/1/foto-perfil',
+      ]);
+      expect(requests.first.headers['content-type'], 'application/json');
+      expect(requests.last, isA<http.MultipartRequest>());
+      expect(
+        saved.profilePhotoUrl,
+        'http://192.168.1.56/storage/usuario/nueva.png',
+      );
+    },
+  );
+
+  test('un 422 al guardar muestra el detalle de cada campo', () async {
+    final api = GymApi(
+      client: MockClient(
+        (request) async => http.Response(
+          '{"message":"Revisa los datos.","errors":{"telefono":["Máximo 12 caracteres."]}}',
+          422,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      ),
+    );
+    final baseUser = (await _testGymApi().fetchUserData('juan.perez@gmail.com'))
+        .user;
+
+    await expectLater(
+      api.updateUserData(baseUser),
+      throwsA(
+        isA<GymApiException>()
+            .having((e) => e.statusCode, 'statusCode', 422)
+            .having(
+              (e) => e.message,
+              'message',
+              contains('telefono: Máximo 12 caracteres.'),
+            ),
+      ),
+    );
+  });
 }
 
 GymApi _testGymApi() {
   return GymApi(
     mediaBaseUri: Uri.parse('http://192.168.1.56/'),
     client: MockClient((request) async {
-      final path = request.url.pathSegments.last;
+      final scopedUser = request.url.path == '/api/auth/me';
+      final scopedCompany = request.url.path == '/api/empresas/1';
+      final path = scopedUser
+          ? 'usuarios'
+          : scopedCompany
+          ? 'empresas'
+          : request.url.pathSegments.last;
       if (path == 'peso-grasa') {
         expect(request.url.path, '/api/usuarios/1/evaluaciones/peso-grasa');
       }
@@ -137,6 +241,12 @@ GymApi _testGymApi() {
         'sensaciones' => '{"data":[{"id":1,"fecha":"2026-08-01","energia":8,"dificultad":5,"fatiga":4,"dolor":1,"comentario":"Buena energía","id_usuarios":1,"id_rutinas":1}]}',
         _ => '{"data":[]}',
       };
+      if (scopedUser || scopedCompany) {
+        return http.Response(
+          jsonEncode({'data': (jsonDecode(body)['data'] as List).first}),
+          200,
+        );
+      }
       return http.Response(body, 200);
     }),
   );

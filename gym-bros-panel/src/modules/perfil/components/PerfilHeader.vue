@@ -238,7 +238,7 @@ async function alCambiarArchivo(evento) {
   border-radius: var(--gb-radius-lg);
   border: 2px solid var(--gb-red);
   background-color: var(--gb-surface-highest);
-  box-shadow: 0 0 16px rgba(229, 9, 20, 0.25);
+  box-shadow: 0 0 16px rgba(var(--gb-red-rgb), 0.25);
   overflow: hidden;
   padding: 0.25rem;
 }

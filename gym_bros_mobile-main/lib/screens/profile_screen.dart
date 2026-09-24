@@ -879,7 +879,41 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
   late final TextEditingController _emailController;
   late String _documentType;
 
-  static const _docTypes = ['DNI', 'Pasaporte', 'Otros'];
+  /// Valor que acepta la API en `tipo_documento` → etiqueta visible. Antes se
+  /// enviaba «Pasaporte» u «Otros» y la API respondía 422.
+  static const _docTypes = {
+    'DNI': 'DNI',
+    'PASAPORTE': 'Pasaporte',
+    'OTRO': 'Otro',
+  };
+
+  /// `usuarios.telefono` y `usuarios.numero_documento` son varchar(12).
+  static const _maxLength = 12;
+
+  static String _cleanPhone(String value) =>
+      value.trim().replaceAll(RegExp(r'[\s-]'), '');
+
+  static String? _validatePhone(String? value) {
+    final phone = _cleanPhone(value ?? '');
+    if (phone.isEmpty) return 'Ingresa tu teléfono';
+    if (!RegExp(r'^\+?\d{6,}$').hasMatch(phone) || phone.length > _maxLength) {
+      return 'Usa de 6 a $_maxLength dígitos';
+    }
+    return null;
+  }
+
+  String? _validateDocument(String? value) {
+    final number = (value ?? '').trim();
+    if (number.isEmpty) return 'Ingresa el número';
+    if (_documentType == 'DNI') {
+      return RegExp(r'^\d{8}$').hasMatch(number)
+          ? null
+          : 'El DNI tiene 8 dígitos';
+    }
+    return number.length < 5 || number.length > _maxLength
+        ? 'De 5 a $_maxLength caracteres'
+        : null;
+  }
 
   @override
   void initState() {
@@ -894,18 +928,15 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
     _docNumberController = TextEditingController(text: u.documentNumber);
     _emailController = TextEditingController(text: u.email);
 
-    final normalizedDocumentType = u.documentType.trim().toLowerCase();
-    final matchingDocumentType = _docTypes.where(
-      (type) => type.toLowerCase() == normalizedDocumentType,
-    );
-    if (matchingDocumentType.length == 1) {
-      _documentType = matchingDocumentType.single;
-    } else if (u.documentType.toLowerCase().contains('extranj') ||
-        u.documentType.toLowerCase().contains('otro')) {
-      _documentType = 'Otros';
-    } else {
-      _documentType = u.documentType.isNotEmpty ? u.documentType : 'DNI';
-    }
+    // Un valor fuera del catálogo haría fallar al DropdownButtonFormField.
+    final storedType = u.documentType.trim().toUpperCase();
+    _documentType = _docTypes.containsKey(storedType)
+        ? storedType
+        : (storedType.contains('PASAPORTE')
+              ? 'PASAPORTE'
+              : (storedType.contains('OTRO') || storedType.contains('EXTRANJ'))
+              ? 'OTRO'
+              : 'DNI');
   }
 
   @override
@@ -975,7 +1006,7 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
       nickname: _nicknameController.text.trim(),
-      phone: _phoneController.text.trim(),
+      phone: _cleanPhone(_phoneController.text),
       address: _addressController.text.trim(),
       birthDate: _birthDateController.text.trim(),
       documentType: _documentType,
@@ -1090,9 +1121,12 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
               const SizedBox(height: 12),
               _buildFormField(
                 controller: _nicknameController,
-                label: 'Apodo / Nickname (Opcional)',
+                label: 'Apodo / Nickname',
                 icon: Icons.alternate_email_rounded,
                 prefixText: '@',
+                validator: (val) => val == null || val.trim().isEmpty
+                    ? 'Ingresa tu apodo'
+                    : null,
               ),
               const SizedBox(height: 12),
 
@@ -1215,10 +1249,13 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
                           ),
                         ),
                       ),
-                      items: _docTypes.map((t) {
+                      items: _docTypes.entries.map((type) {
                         return DropdownMenuItem(
-                          value: t,
-                          child: Text(t, overflow: TextOverflow.ellipsis),
+                          value: type.key,
+                          child: Text(
+                            type.value,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         );
                       }).toList(),
                       onChanged: (val) {
@@ -1234,9 +1271,7 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
                       label: 'Número de doc.',
                       icon: Icons.credit_card_rounded,
                       keyboardType: TextInputType.text,
-                      validator: (val) => val == null || val.trim().isEmpty
-                          ? 'Ingresa el número'
-                          : null,
+                      validator: _validateDocument,
                     ),
                   ),
                 ],
@@ -1267,9 +1302,7 @@ class _EditPersonalDataSheetState extends State<_EditPersonalDataSheet> {
                 label: 'Teléfono / WhatsApp',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
-                validator: (val) => val == null || val.trim().isEmpty
-                    ? 'Ingresa tu teléfono'
-                    : null,
+                validator: _validatePhone,
               ),
               const SizedBox(height: 12),
               _buildFormField(

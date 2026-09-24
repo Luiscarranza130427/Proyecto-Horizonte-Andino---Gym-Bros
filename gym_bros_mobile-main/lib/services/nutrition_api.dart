@@ -34,12 +34,14 @@ extension NutritionApi on GymApi {
     }
   }
 
+  /// Catálogo de alimentos para el perfil. La API ya no expone
+  /// `restriccionesalimentarias` (las restricciones son preferencias por
+  /// alimento), así que ambas variantes leen `alimentos`; antes `true`
+  /// terminaba en un 404.
   Future<List<Json>> foodProfileCatalog({required bool restrictions}) =>
       _nutritionParse(
         () async => nutritionList(
-          await _nutritionRequest(
-            restrictions ? 'restriccionesalimentarias' : 'alimentos',
-          ),
+          await _nutritionRequest('alimentos'),
           (j) => {
             'id': nutritionId(j['id']),
             'nombre': nutritionText(j['nombre']),
@@ -147,6 +149,7 @@ extension NutritionApi on GymApi {
         method ?? (body == null ? 'GET' : 'POST'),
         apiBaseUri.resolve(path),
       )..headers['Accept'] = 'application/json';
+      _authorize(request);
       if (body != null) {
         request.headers['Content-Type'] = 'application/json';
         request.body = jsonEncode(body);
@@ -167,6 +170,7 @@ extension NutritionApi on GymApi {
         }
       }
       final status = response.statusCode;
+      if (status == 401) await clearAuthToken();
       if (status != (body == null || method == 'PUT' ? 200 : 201)) {
         final fallback = switch (status) {
           401 => 'Tu sesión no está autorizada. Vuelve a iniciar sesión.',

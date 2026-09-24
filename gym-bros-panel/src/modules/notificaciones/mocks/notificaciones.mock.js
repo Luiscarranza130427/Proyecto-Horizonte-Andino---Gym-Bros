@@ -176,18 +176,19 @@ export async function listarNotificacionesEnviadasMock({
   filtradas.sort((a, b) => new Date(b.fechaEnvio) - new Date(a.fechaEnvio))
 
   const total = filtradas.length
-  const totalPaginas = Math.ceil(total / porPagina) || 1
+  const ultimaPagina = Math.ceil(total / porPagina) || 1
   const inicio = (pagina - 1) * porPagina
   const fin = inicio + porPagina
   const items = filtradas.slice(inicio, fin)
 
   return {
     items,
+    // Mismo contrato que `normalizarListado` da a la respuesta de Laravel.
     paginacion: {
-      total,
+      pagina,
+      ultimaPagina,
       porPagina,
-      paginaActual: pagina,
-      totalPaginas,
+      total,
     },
   }
 }

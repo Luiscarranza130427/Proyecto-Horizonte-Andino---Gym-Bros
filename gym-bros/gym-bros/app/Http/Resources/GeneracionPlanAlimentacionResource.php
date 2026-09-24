@@ -20,7 +20,7 @@ class GeneracionPlanAlimentacionResource extends JsonResource
                     'cantidad' => (float) $a->cantidad, 'unidad' => $a->unidad,
                     'notas' => $a->notas, 'detalle_nutricional' => $a->detalle_nutricional,
                 ])->all();
-                $fraccion = $this->calculo['distribucion'][$comida->tipo];
+                $fraccion = $this->calculo['distribucion'][$comida->tipo] ?? 0;
                 $filas[] = ['id' => $comida->id, 'nombre' => $comida->nombre, 'tipo' => $comida->tipo,
                     'orden' => (int) $comida->orden, 'hora_sugerida' => $comida->hora_sugerida,
                     'objetivos' => array_map(fn ($n) => round($n * $fraccion, 2), $this->calculo['objetivos']),

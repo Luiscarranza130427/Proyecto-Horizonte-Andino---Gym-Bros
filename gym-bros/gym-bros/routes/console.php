@@ -28,3 +28,7 @@ Schedule::call(function () {
         }
     });
 })->name('checkout-confirmaciones-pendientes')->hourly()->withoutOverlapping(60);
+
+// Los tokens de sesion caducan a las 8 h pero la fila se queda: se purgan los
+// vencidos hace mas de 24 h para que la tabla no crezca sin limite.
+Schedule::command('sanctum:prune-expired --hours=24')->daily()->withoutOverlapping(60);

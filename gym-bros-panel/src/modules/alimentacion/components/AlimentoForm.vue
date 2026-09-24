@@ -177,6 +177,20 @@ async function enviar() {
     if (sonIgualesLosTiposComida(datos.tiposComida, tiposComidaOriginal.value)) {
       delete datos.tiposComida
     }
+    /*
+     * La configuración del generador (base, preparación, porciones...) sólo
+     * viaja si el administrador la cambió. Antes se reenviaba entera, con
+     * vacíos incluidos, y editar las calorías de un alimento sin esa
+     * configuración devolvía 422 exigiendo seis campos que nadie había tocado.
+     */
+    const original = valoresParaFormulario()
+    Object.keys(MODELO_VACIO)
+      .filter((campo) => !['nombre', 'tipo', 'tiposComida', ...MACROS].includes(campo))
+      .forEach((campo) => {
+        const valor = datos[campo]
+        const vacio = valor === '' || valor === null || valor === undefined
+        if (vacio || String(valor) === String(original[campo] ?? '')) delete datos[campo]
+      })
   }
 
   emit('submit', datos)

@@ -80,12 +80,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
               gradient: LinearGradient(
                 begin: const Alignment(-.9, -1),
                 end: const Alignment(.8, 1),
-              colors: [
+                colors: [
                   AppColors.background,
                   AppColors.background,
                   const Color(0xFF0D0D0D),
                   AppColors.background,
-              ],
+                ],
                 stops: const [0, .24, .58, 1],
               ),
             ),

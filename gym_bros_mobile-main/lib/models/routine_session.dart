@@ -92,7 +92,12 @@ class SessionExercise {
       type: _text(exercise['tipo']),
       muscle: group is Map ? _text(group['tipo']) : '',
       muscleDescription: group is Map ? _text(group['descripcion']) : '',
-      imageUrl: GymUser.resolveMediaUrl(exercise['imagen_ejercicio'], base),
+      // `imagen_url` es la URL pública que arma la API; la ruta cruda queda
+      // como respaldo para respuestas antiguas.
+      imageUrl: GymUser.resolveMediaUrl(
+        exercise['imagen_url'] ?? exercise['imagen_ejercicio'],
+        base,
+      ),
       videoUrl: _text(exercise['enlace_video']),
     );
   }

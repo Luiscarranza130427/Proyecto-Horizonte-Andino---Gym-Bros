@@ -75,4 +75,19 @@ describe('PerfilSeguridadForm.vue', () => {
     await btnCerrar.trigger('click')
     expect(wrapper.emitted('cerrar-otras-sesiones')).toBeTruthy()
   })
+  it.each([
+    ['corta', 'Clave2026', 'al menos 12'],
+    ['sin números', 'claveSinNumerosLarga', 'letras y números'],
+    ['sin letras', '123456789012', 'letras y números'],
+    ['igual a la actual', 'admin1234567', 'distinta de la actual'],
+  ])('rechaza una clave %s como lo haría la API', async (_caso, clave, mensaje) => {
+    const wrapper = mount(PerfilSeguridadForm, { props: { sesiones: sesionesMock } })
+    await wrapper.find('#seguridad-actual').setValue('admin1234567')
+    await wrapper.find('#seguridad-nueva').setValue(clave)
+    await wrapper.find('#seguridad-confirmacion').setValue(clave)
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.emitted('cambiar-clave')).toBeUndefined()
+    expect(wrapper.text()).toContain(mensaje)
+  })
 })

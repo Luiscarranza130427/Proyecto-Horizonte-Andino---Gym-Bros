@@ -1,6 +1,6 @@
 <script setup>
 import { Dumbbell } from 'lucide-vue-next'
-import { onBeforeUnmount, ref, useTemplateRef } from 'vue'
+import { computed, onBeforeUnmount, ref, useTemplateRef } from 'vue'
 
 import { useFormulario } from '@/shared/composables/useFormulario'
 import { EQUIPOS, NIVELES, valoresDe } from '@/modules/ejercicios/catalogos'
@@ -86,6 +86,18 @@ const { formulario, erroresLocales, erroresRemotos, errorDe, limpiarError, valid
     },
     validar,
   })
+
+/*
+ * En la base el equipamiento es texto libre («barra y banco», «polea alta»…) y
+ * el catálogo sólo tiene seis valores. Si el guardado no está en el catálogo se
+ * ofrece como opción: sin ella el select quedaba vacío y editar cualquier otro
+ * campo obligaba a cambiar un dato real.
+ */
+const opcionesEquipo = computed(() => {
+  const actual = String(props.valoresIniciales?.equipamiento ?? '').trim()
+  if (!actual || valoresDe(EQUIPOS).includes(actual)) return EQUIPOS
+  return [...EQUIPOS, { valor: actual, etiqueta: actual.charAt(0).toUpperCase() + actual.slice(1) }]
+})
 
 async function enviar() {
   if (props.enviando) return
@@ -234,7 +246,7 @@ onBeforeUnmount(quitarImagen)
             @change="limpiarError('equipamiento')"
           >
             <option value="">Selecciona un equipamiento</option>
-            <option v-for="opcion in EQUIPOS" :key="opcion.valor" :value="opcion.valor">
+            <option v-for="opcion in opcionesEquipo" :key="opcion.valor" :value="opcion.valor">
               {{ opcion.etiqueta }}
             </option>
           </select>
@@ -328,6 +340,11 @@ onBeforeUnmount(quitarImagen)
               v-if="vistaPreviaImagen"
               :src="vistaPreviaImagen"
               alt="Vista previa del ejercicio"
+            />
+            <img
+              v-else-if="modo === 'edit' && valoresIniciales.imagen"
+              :src="valoresIniciales.imagen"
+              alt="Imagen actual del ejercicio"
             />
             <p v-if="vistaPreviaImagen" class="imagen-ejercicio__medida">
               Medida recomendada: 380 × 500 px.

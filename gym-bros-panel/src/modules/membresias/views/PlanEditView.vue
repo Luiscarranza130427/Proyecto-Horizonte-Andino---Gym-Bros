@@ -55,6 +55,10 @@ async function guardar(datos) {
 }
 
 onMounted(cargar)
+
+function cancelar() {
+  router.push({ name: 'planes-administrar' }).catch(() => {})
+}
 </script>
 
 <template>
@@ -95,7 +99,7 @@ onMounted(cargar)
         :enviando="enviando"
         :errores-servidor="erroresServidor"
         @submit="guardar"
-        @cancel="router.push({ name: 'planes-administrar' })"
+        @cancel="cancelar"
       />
     </template>
   </section>

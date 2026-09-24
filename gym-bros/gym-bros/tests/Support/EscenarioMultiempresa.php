@@ -92,5 +92,4 @@ trait EscenarioMultiempresa
     {
         return collect($this->getJson($uri)->assertOk()->json('data'))->pluck('id')->sort()->values()->all();
     }
-
 }

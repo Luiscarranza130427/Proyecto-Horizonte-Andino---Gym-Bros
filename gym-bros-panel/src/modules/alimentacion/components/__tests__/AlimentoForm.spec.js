@@ -160,6 +160,48 @@ describe('AlimentoForm', () => {
     expect(wrapper.text()).toContain('Guardar cambios')
   })
 
+  it('al editar sólo envía la configuración avanzada que se cambió', async () => {
+    // Forma real de un alimento del alta básica: sin configuración del generador
+    // (el servicio rellena unidadBase con 'gramos' por defecto).
+    const wrapper = montar({
+      modo: 'edit',
+      valoresIniciales: {
+        nombre: 'Quinua',
+        tipo: 'cereal',
+        calorias: 120,
+        proteinas: 4.4,
+        carbohidratos: 21.3,
+        grasas: 1.9,
+        fibra: 2.8,
+        unidadBase: 'gramos',
+        estadoPreparacion: null,
+        grupoMenu: null,
+        porcionMin: null,
+        tiposComida: [],
+      },
+    })
+
+    await wrapper.get('#alimento-calorias').setValue('125')
+    await wrapper.get('form').trigger('submit')
+
+    const enviado = wrapper.emitted('submit')[0][0]
+    expect(enviado.calorias).toBe(125)
+    // Antes viajaban todos (vacíos incluidos) y la API respondía 422.
+    for (const campo of [
+      'unidadBase',
+      'estadoPreparacion',
+      'grupoMenu',
+      'porcionMin',
+      'tiposComida',
+    ]) {
+      expect(enviado).not.toHaveProperty(campo)
+    }
+
+    await wrapper.get('#alimento-estadoPreparacion').setValue('Cocido')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('submit')[1][0].estadoPreparacion).toBe('Cocido')
+  })
+
   it('emite tipos de comida como valores únicos y sólo cuando cambiaron', async () => {
     const wrapper = montar({
       modo: 'edit',

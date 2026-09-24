@@ -9,6 +9,12 @@ import '../widgets/generate_nutrition_sheet.dart';
 import '../widgets/food_profile_sheet.dart';
 import '../widgets/nutrition_overview.dart';
 
+const _nutritionActionText = TextStyle(
+  fontSize: 13.5,
+  fontWeight: FontWeight.w700,
+  height: 1.2,
+);
+
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({
     super.key,
@@ -257,62 +263,64 @@ class _NutritionScreenState extends State<NutritionScreen> {
               .toString(),
         ),
         const SizedBox(height: 20),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 1,
-              child: FilledButton.icon(
-                key: const ValueKey('new-nutrition'),
-                label: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
+        // Texto de tamaño fijo que puede ocupar dos líneas: antes un FittedBox
+        // lo encogía hasta caber en media pantalla y quedaba diminuto.
+        // IntrinsicHeight iguala la altura de ambos si uno ocupa dos líneas.
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  key: const ValueKey('new-nutrition'),
+                  label: const Text(
                     'Generar plan alimentario',
-                    maxLines: 1,
+                    maxLines: 2,
                     textAlign: TextAlign.center,
+                    style: _nutritionActionText,
                   ),
+                  icon: const Icon(Icons.restaurant_menu, size: 20),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 54),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: _formOpen ? null : _generate,
                 ),
-                icon: const Icon(Icons.restaurant_menu, size: 16),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: _formOpen ? null : _generate,
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              flex: 1,
-              child: OutlinedButton.icon(
-                key: const ValueKey('edit-food-profile'),
-                onPressed: _formOpen ? null : _editFoodProfile,
-                icon: const Icon(Icons.edit_note, size: 16),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 16,
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const ValueKey('edit-food-profile'),
+                  onPressed: _formOpen ? null : _editFoodProfile,
+                  icon: const Icon(Icons.edit_note, size: 20),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 54),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                label: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
+                  label: Text(
                     _profile == null
                         ? 'Agregar datos alimentarios'
                         : 'Editar datos alimentarios',
-                    maxLines: 1,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: _nutritionActionText,
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         if (_profileLoading)

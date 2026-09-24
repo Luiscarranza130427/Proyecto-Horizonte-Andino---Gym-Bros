@@ -34,6 +34,10 @@ async function guardar(datos) {
     enviando.value = false
   }
 }
+
+function cancelar() {
+  router.push({ name: 'empresas-listado' }).catch(() => {})
+}
 </script>
 
 <template>
@@ -53,7 +57,7 @@ async function guardar(datos) {
       :enviando="enviando"
       :errores-servidor="erroresServidor"
       @submit="guardar"
-      @cancel="router.push({ name: 'empresas-listado' })"
+      @cancel="cancelar"
     />
   </section>
 </template>

@@ -97,6 +97,14 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    /*
+    | Proxies de confianza (Nginx, Cloudflare, balanceador que termina TLS).
+    | Sin esto Laravel ve HTTP: ApiSesion rechaza todo en produccion con
+    | "Se requiere HTTPS" y las URLs de imagenes salen con http://.
+    | IPs separadas por comas o '*'. Vacio: no se confia en ningun proxy.
+    */
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
     'key' => env('APP_KEY'),
 
     'previous_keys' => [

@@ -139,12 +139,44 @@ class GymApi {
     await _secureStorage.delete(key: 'auth_token');
   }
 
+  /// Revoca el token en el servidor y lo borra del dispositivo. Si el
+  /// servidor no responde, la sesión local se cierra igualmente.
+  Future<void> logout() async {
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      try {
+        await _client
+            .post(apiBaseUri.resolve('auth/logout'), headers: _headers())
+            .timeout(const Duration(seconds: 10));
+      } on Exception catch (error) {
+        debugPrint('No se pudo revocar la sesión en el servidor: $error');
+      }
+    }
+    await clearAuthToken();
+  }
+
   Map<String, String> _headers({bool json = false}) => {
     'Accept': 'application/json',
     if (json) 'Content-Type': 'application/json',
     if (_authToken != null && _authToken!.isNotEmpty)
       'Authorization': 'Bearer $_authToken',
   };
+
+  /// Añade el token de sesión: la API exige autenticación en todo lo privado.
+  void _authorize(http.BaseRequest request) {
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $_authToken';
+    }
+  }
+
+  /// Un 401 significa token vencido o revocado: se descarta y se avisa.
+  Future<void> _rejectIfUnauthorized(http.Response response) async {
+    if (response.statusCode != 401) return;
+    await clearAuthToken();
+    throw const GymApiException(
+      'Tu sesión expiró. Vuelve a iniciar sesión.',
+      statusCode: 401,
+    );
+  }
 
   Map<String, dynamic>? _decodeJsonObject(List<int> bytes) {
     final decoded = jsonDecode(utf8.decode(bytes));
@@ -207,6 +239,7 @@ class GymApi {
           'rutinas/generar/$userId${generate ? '' : '/estado'}',
         ),
       )..headers['Accept'] = 'application/json';
+      _authorize(request);
       if (generate) {
         request.headers['Content-Type'] = 'application/json';
         request.body = '{}';
@@ -215,6 +248,7 @@ class GymApi {
           .send(request)
           .then(http.Response.fromStream)
           .timeout(const Duration(seconds: 60));
+      await _rejectIfUnauthorized(response);
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw GymApiException(
@@ -287,10 +321,12 @@ class GymApi {
           'Content-Type': 'application/json',
         })
         ..body = jsonEncode(values);
+      _authorize(request);
       final response = await _client
           .send(request)
           .then(http.Response.fromStream)
           .timeout(const Duration(seconds: 15));
+      await _rejectIfUnauthorized(response);
       if (response.statusCode != 200 && response.statusCode != 201) {
         var detail = '';
         try {
@@ -353,6 +389,7 @@ class GymApi {
             headers: _headers(),
           )
           .timeout(const Duration(seconds: 15));
+      await _rejectIfUnauthorized(response);
       if (response.statusCode != 200) {
         throw GymApiException(
           response.statusCode == 404
@@ -415,7 +452,7 @@ class GymApi {
             'POST',
             apiBaseUri.resolve('usuarios/${user.id}/foto-perfil'),
           )
-          ..headers['Accept'] = 'application/json'
+          ..headers.addAll(_headers())
           ..files.add(
             await http.MultipartFile.fromPath('foto_perfil', localPhotoPath),
           );
@@ -425,45 +462,50 @@ class GymApi {
           .send(request)
           .then(http.Response.fromStream)
           .timeout(const Duration(seconds: 15));
+      await _rejectIfUnauthorized(response);
       if (response.statusCode != 200 &&
           response.statusCode != 201 &&
           response.statusCode != 202) {
-        var detail = '';
+        Map<String, dynamic>? decoded;
         try {
-          final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-          if (decoded is Map<String, dynamic> && decoded['message'] != null) {
-            detail = ': ${decoded['message']}';
-          }
-        } catch (_) {}
+          decoded = _decodeJsonObject(response.bodyBytes);
+        } on FormatException {
+          decoded = null;
+        }
         throw GymApiException(
-          'No se pudo actualizar la foto (${response.statusCode})$detail',
+          _apiErrorMessage(
+            decoded,
+            response.statusCode,
+            fallback: 'No se pudo actualizar la foto (${response.statusCode}).',
+          ),
+          statusCode: response.statusCode,
         );
       }
 
+      // `POST /usuarios/{id}/foto-perfil` responde { foto_perfil, foto_url }.
       String? uploadedPhoto;
       try {
-        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-        if (decoded is Map<String, dynamic>) {
-          final candidates = <Object?>[
-            decoded['usuario'],
-            decoded['data'],
-            decoded,
-          ];
-          for (final candidate in candidates) {
-            if (candidate is Map<String, dynamic>) {
-              final value =
-                  candidate['foto_perfil'] ??
-                  candidate['foto'] ??
-                  candidate['url'] ??
-                  candidate['ruta'];
-              if (value != null && value.toString().trim().isNotEmpty) {
-                uploadedPhoto = GymUser.resolveMediaUrl(value, mediaBaseUri);
-                break;
-              }
+        final decoded = _decodeJsonObject(response.bodyBytes);
+        final candidates = <Object?>[
+          decoded?['usuario'],
+          decoded?['data'],
+          decoded,
+        ];
+        for (final candidate in candidates) {
+          if (candidate is Map<String, dynamic>) {
+            final value =
+                candidate['foto_url'] ??
+                candidate['foto_perfil_url'] ??
+                candidate['foto_perfil'];
+            if (value != null && value.toString().trim().isNotEmpty) {
+              uploadedPhoto = GymUser.resolveMediaUrl(value, mediaBaseUri);
+              break;
             }
           }
         }
-      } catch (_) {}
+      } on FormatException {
+        uploadedPhoto = null;
+      }
 
       return user.copyWith(profilePhotoUrl: uploadedPhoto ?? localPhotoPath);
     } on GymApiException {
@@ -475,16 +517,22 @@ class GymApi {
 
   Future<GymUser> updateUserData(GymUser user, {String? localPhotoPath}) async {
     final uri = apiBaseUri.resolve('usuarios/${user.id}');
-    final fields = <String, String>{
+    // `PUT /usuarios/{id}` declara estos campos `sometimes|required`: se pueden
+    // omitir pero no enviar vacíos (422). La dirección sí admite vaciarse.
+    final required = <String, String>{
       'nombres': user.firstName,
       'apellidos': user.lastName,
       'apodo': user.nickname,
       'correo': user.email,
       'telefono': user.phone,
-      'direccion': user.address,
       'fecha_nacimiento': user.birthDate,
       'tipo_documento': user.documentType,
       'numero_documento': user.documentNumber,
+    };
+    final fields = <String, String?>{
+      for (final entry in required.entries)
+        if (entry.value.trim().isNotEmpty) entry.key: entry.value.trim(),
+      'direccion': user.address.trim().isEmpty ? null : user.address.trim(),
     };
     final hasPhoto =
         !kIsWeb &&
@@ -492,44 +540,43 @@ class GymApi {
         localPhotoPath.isNotEmpty &&
         !localPhotoPath.startsWith('http') &&
         !localPhotoPath.startsWith('assets/');
-    final request = hasPhoto
-        ? http.MultipartRequest('POST', uri)
-        : http.Request('PUT', uri);
-    request.headers['Accept'] = 'application/json';
-    if (request is http.MultipartRequest) {
-      request.fields.addAll(fields);
-      request.fields['_method'] = 'PUT';
-      final file = io.File(localPhotoPath!);
-      if (file.existsSync()) {
-        request.files.add(
-          await http.MultipartFile.fromPath('foto_perfil', localPhotoPath),
-        );
-      }
-    } else {
-      request.headers['Content-Type'] = 'application/json';
-      (request as http.Request).body = jsonEncode(fields);
-    }
+    // Los datos van siempre como JSON. La foto tiene su propio endpoint: el PUT
+    // ignoraba el archivo y la app la mostraba como guardada sin estarlo.
+    final request = http.Request('PUT', uri)
+      ..headers.addAll(const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      })
+      ..body = jsonEncode(fields);
+    _authorize(request);
 
     try {
       final streamedResponse = await _client
           .send(request)
           .timeout(const Duration(seconds: 10));
       final response = await http.Response.fromStream(streamedResponse);
+      await _rejectIfUnauthorized(response);
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        String detail = '';
+        Map<String, dynamic>? decoded;
         try {
-          final decoded = jsonDecode(response.body);
-          if (decoded is Map<String, dynamic> && decoded['message'] != null) {
-            detail = ': ${decoded['message']}';
-          }
-        } catch (_) {}
+          decoded = _decodeJsonObject(response.bodyBytes);
+        } on FormatException {
+          decoded = null;
+        }
         throw GymApiException(
-          'El servidor respondió con error (${response.statusCode})$detail',
+          _apiErrorMessage(
+            decoded,
+            response.statusCode,
+            fallback:
+                'El servidor respondió con error (${response.statusCode}).',
+          ),
+          statusCode: response.statusCode,
         );
       }
 
-      final body = jsonDecode(response.body);
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      var saved = user;
       if (body is Map<String, dynamic>) {
         final userData = (body['usuario'] is Map<String, dynamic>)
             ? body['usuario'] as Map<String, dynamic>
@@ -537,15 +584,16 @@ class GymApi {
             ? body['data'] as Map<String, dynamic>
             : body;
 
-        final rawPhoto = userData['foto_perfil'] ?? userData['foto'];
+        final rawPhoto =
+            userData['foto_perfil_url'] ??
+            userData['foto_perfil'] ??
+            userData['foto'];
         final resolvedPhotoUrl =
             (rawPhoto != null && rawPhoto.toString().trim().isNotEmpty)
             ? GymUser.resolveMediaUrl(rawPhoto, mediaBaseUri)
-            : ((localPhotoPath != null && localPhotoPath.isNotEmpty)
-                  ? localPhotoPath
-                  : user.profilePhotoUrl);
+            : user.profilePhotoUrl;
 
-        return user.copyWith(
+        saved = user.copyWith(
           firstName: userData['nombre'] != null
               ? _text(userData['nombre'])
               : (userData['nombres'] != null
@@ -578,10 +626,10 @@ class GymApi {
           profilePhotoUrl: resolvedPhotoUrl,
         );
       }
-      return user.copyWith(
-        profilePhotoUrl: (localPhotoPath != null && localPhotoPath.isNotEmpty)
-            ? localPhotoPath
-            : user.profilePhotoUrl,
+      if (!hasPhoto) return saved;
+      return await uploadProfilePhoto(
+        user: saved,
+        localPhotoPath: localPhotoPath,
       );
     } on GymApiException {
       rethrow;
@@ -590,18 +638,17 @@ class GymApi {
     }
   }
 
+  /// Datos de la sesión iniciada. La identidad sale del token (`auth/me`):
+  /// antes se descargaba la lista completa de usuarios y se buscaba el correo
+  /// en el teléfono, lo que exponía los datos de todos los gimnasios.
   Future<GymSessionData> fetchUserData(String emailOrDni) async {
-    final users = await _getDataList('usuarios');
+    final userJson = await _getDataObject('auth/me');
     final normalized = emailOrDni.trim().toLowerCase();
-    final userJson = _findFirst(users, (item) {
-      final email = _text(item['correo']).toLowerCase();
-      final dni = _text(item['numero_documento']).toLowerCase();
-      return email == normalized || dni == normalized;
-    });
-
-    if (userJson == null) {
+    final email = _text(userJson['correo']).toLowerCase();
+    final dni = _text(userJson['numero_documento']).toLowerCase();
+    if (normalized.isNotEmpty && email != normalized && dni != normalized) {
       throw const GymApiException(
-        'No encontramos un usuario vinculado con ese correo o DNI.',
+        'La sesión iniciada no corresponde al correo ingresado.',
       );
     }
 
@@ -609,23 +656,27 @@ class GymApi {
       final user = GymUser.fromJson(userJson, mediaBaseUri: mediaBaseUri);
       final weightFatEvaluationFuture = _getWeightFatEvaluation(user.id);
       final trainingProfileFuture = _getTrainingProfile(user.id);
+      // La API ya limita cada listado a lo que el usuario puede ver.
+      final companyFuture = _getDataObject('empresas/${user.companyId}');
       final responses = await Future.wait([
-        _getDataList('empresas'),
         _getDataList('rutinas'),
         _getDataList('progresos'),
         _getDataList('notificaciones'),
         _getDataList('sensaciones'),
       ]);
-
-      final companyJson = _findFirst(
-        responses[0],
-        (item) => _id(item['id']) == user.companyId,
-      );
-      if (companyJson == null) {
-        throw const GymApiException(
-          'La empresa vinculada no está disponible en la API.',
-        );
-      }
+      final companyJson = await companyFuture;
+      // Los avisos generales de la empresa llegan sin id_usuarios: son del
+      // usuario igual que los personales.
+      final notificationItems = responses[2]
+          .whereType<Map<String, dynamic>>()
+          .map(
+            (item) => item['id_usuarios'] == null
+                ? {...item, 'id_usuarios': user.id}
+                : item,
+          )
+          .toList(growable: false);
+      responses[2] = notificationItems;
+      responses.insert(0, [companyJson]);
 
       final routines =
           _related(
@@ -679,6 +730,7 @@ class GymApi {
             headers: _headers(),
           )
           .timeout(const Duration(seconds: 15));
+      await _rejectIfUnauthorized(response);
       if (response.statusCode == 404) return null;
       if (response.statusCode != 200) {
         throw GymApiException(
@@ -721,6 +773,7 @@ class GymApi {
             headers: _headers(),
           )
           .timeout(const Duration(seconds: 15));
+      await _rejectIfUnauthorized(response);
       if (response.statusCode == 404) return null;
       if (response.statusCode != 200) {
         throw GymApiException(
@@ -799,6 +852,45 @@ class GymApi {
     } on io.SocketException {
       throw const GymApiException(
         'No se pudo alcanzar la API. Revisa la IP configurada y la red Wi-Fi.',
+      );
+    } on http.ClientException {
+      throw const GymApiException(
+        'No se pudo conectar con la API. Revisa la red Wi-Fi y el servidor.',
+      );
+    } on FormatException {
+      throw const GymApiException(
+        'La respuesta de la API no tiene el formato esperado.',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> _getDataObject(String path) async {
+    try {
+      final response = await _client
+          .get(apiBaseUri.resolve(path), headers: _headers())
+          .timeout(const Duration(seconds: 15));
+      await _rejectIfUnauthorized(response);
+      if (response.statusCode != 200) {
+        throw GymApiException(
+          response.statusCode == 403
+              ? 'No tienes permiso para consultar esta información.'
+              : 'La API respondió con el estado ${response.statusCode}.',
+          statusCode: response.statusCode,
+        );
+      }
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body is! Map<String, dynamic> ||
+          body['data'] is! Map<String, dynamic>) {
+        throw const FormatException();
+      }
+      return body['data'] as Map<String, dynamic>;
+    } on TimeoutException {
+      throw const GymApiException(
+        'La API tardó demasiado en responder. Revisa la red Wi-Fi y el servidor.',
+      );
+    } on io.SocketException {
+      throw const GymApiException(
+        'No se pudo alcanzar la API. Revisa la dirección configurada y la red Wi-Fi.',
       );
     } on http.ClientException {
       throw const GymApiException(

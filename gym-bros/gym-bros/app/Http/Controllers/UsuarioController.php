@@ -233,7 +233,8 @@ class UsuarioController extends Controller
      */
     public function show(string $id_usuario)
     {
-        $usuario = Usuario::find($id_usuario);
+        // Con la empresa cargada, el panel pinta la ficha con una sola peticion.
+        $usuario = Usuario::with('empresa')->find($id_usuario);
         if (! $usuario) {
             return response()->json(['message' => 'Usuario no encontrado.'], 404);
         }

@@ -6,6 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\Support\EscenarioMultiempresa;
 use Tests\TestCase;
 
@@ -179,7 +180,7 @@ class EndpointsPanelTest extends TestCase
             ->assertOk()->assertJsonPath('data.nombre', 'Press inclinado')->assertJsonPath('data.nivel', 'avanzado');
         $ruta = DB::table('ejercicios')->where('id', 1)->value('imagen_ejercicio');
         $this->assertStringStartsWith('ejercicios/', $ruta);
-        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($ruta);
+        Storage::disk('public')->assertExists($ruta);
         $this->putJson('/api/ejercicios/1', ['nivel' => 'experto'])->assertUnprocessable()->assertJsonValidationErrors('nivel');
         $this->putJson('/api/ejercicios/1', [])->assertUnprocessable()->assertJsonValidationErrors('datos');
         $this->putJson('/api/ejercicios/999', ['nombre' => 'X'])->assertNotFound();

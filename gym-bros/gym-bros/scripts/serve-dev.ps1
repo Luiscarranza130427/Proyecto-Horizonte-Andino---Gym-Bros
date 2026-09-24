@@ -18,7 +18,8 @@ param(
 
 $raiz = Split-Path -Parent $PSScriptRoot
 Set-Location (Join-Path $raiz 'public')
-$router = Join-Path $raiz 'vendor\laravel\framework\src\Illuminate\Foundation\resources\server.php'
+# Router de Laravel + cabecera CORS en storage/ para la app Flutter en web.
+$router = Join-Path $raiz 'scripts\router-dev.php'
 
 Write-Host "API Gym Bros en http://${Host_}:${Puerto} (OPcache activo)"
 & $Php -d zend_extension=opcache -d opcache.enable=1 -d opcache.enable_cli=1 `
