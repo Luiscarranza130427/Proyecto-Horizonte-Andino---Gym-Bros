@@ -1,0 +1,278 @@
+/**
+ * Hoja de estilos de la aplicación.
+ *
+ * Orden de carga (ver src/main.js): Bootstrap -> Bootstrap Icons -> este archivo,
+ * para que los tokens de Gym Bros sobrescriban a los de Bootstrap.
+ *
+ * El documento declara `data-bs-theme="dark"` en index.html: así los componentes
+ * de Bootstrap 5.3 ya parten de su variante oscura y aquí sólo hay que ajustar
+ * los valores propios de la marca.
+ */
+@import './_variables.css';
+@import './base.css';
+
+:root {
+  --bs-body-bg: var(--gb-bg);
+  --bs-body-color: var(--gb-text);
+  --bs-body-font-family: var(--gb-fuente-texto);
+  --bs-border-color: var(--gb-border);
+  --bs-border-radius: var(--gb-radius);
+  --bs-border-radius-sm: var(--gb-radius-sm);
+  --bs-border-radius-lg: var(--gb-radius-lg);
+  --bs-link-color: var(--gb-red-text);
+  --bs-link-hover-color: var(--gb-link-hover);
+  --bs-secondary-color: var(--gb-text-muted);
+  --bs-emphasis-color: var(--gb-text);
+}
+
+/* ==========================================================================
+   SISTEMA DE BOTONES ESTANDARIZADO GYM BROS
+   Todos los módulos comparten altura, bordes redondeados (pill),
+   alineación y tipografía unificada sin mayúsculas forzadas.
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0.55rem 1.25rem;
+  font-family: var(--gb-fuente-texto);
+  font-size: var(--gb-tipo-xs, 0.8125rem);
+  font-weight: 700;
+  line-height: 1.25;
+  border-radius: var(--gb-radius-pill);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-transform: none;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Botón Primario: Rojo Gym Bros con relieve y resplandor sutil */
+.btn-primary {
+  --bs-btn-bg: var(--gb-red);
+  --bs-btn-border-color: var(--gb-red);
+  --bs-btn-hover-bg: var(--gb-red-hover);
+  --bs-btn-hover-border-color: var(--gb-red-hover);
+  --bs-btn-active-bg: var(--gb-red-hover);
+  --bs-btn-active-border-color: var(--gb-red-hover);
+  --bs-btn-disabled-bg: var(--gb-red);
+  --bs-btn-disabled-border-color: var(--gb-red);
+  --bs-btn-color: var(--gb-on-red);
+  --bs-btn-hover-color: var(--gb-on-red);
+  --bs-btn-active-color: var(--gb-on-red);
+  --bs-btn-disabled-color: var(--gb-on-red);
+  --bs-btn-border-radius: var(--gb-radius-pill);
+  color: var(--gb-on-red, #ffffff);
+  background-color: var(--gb-red, #e11d48);
+  border: 1px solid var(--gb-red, #e11d48);
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.35);
+}
+
+.btn-primary:hover:not(:disabled) {
+  color: #ffffff;
+  background-color: var(--gb-red-hover, #be123c);
+  border-color: var(--gb-red-hover, #be123c);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.5);
+}
+
+/* Botón Secundario y Ghost: Fondo oscuro elegante y borde metálico */
+.btn-secondary,
+.btn-ghost {
+  --bs-btn-color: var(--gb-text);
+  --bs-btn-border-color: var(--gb-border);
+  --bs-btn-hover-color: var(--gb-text);
+  --bs-btn-hover-bg: var(--gb-surface-highest);
+  --bs-btn-hover-border-color: var(--gb-text-soft);
+  --bs-btn-border-radius: var(--gb-radius-pill);
+  color: var(--gb-text, #ffffff);
+  background-color: var(--gb-surface-high, #262626);
+  border: 1px solid var(--gb-border, #404040);
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--gb-surface-highest, #333333);
+  border-color: var(--gb-text-soft, #a3a3a3);
+  color: #ffffff;
+}
+
+/* Botón Peligro / Destructivo */
+.btn-danger {
+  --bs-btn-bg: var(--gb-red);
+  --bs-btn-border-color: var(--gb-red);
+  --bs-btn-hover-bg: var(--gb-red-hover);
+  --bs-btn-hover-border-color: var(--gb-red-hover);
+  --bs-btn-color: var(--gb-on-red);
+  --bs-btn-border-radius: var(--gb-radius-pill);
+  color: var(--gb-on-red, #ffffff);
+  background-color: var(--gb-red, #e11d48);
+  border: 1px solid var(--gb-red, #e11d48);
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.35);
+}
+
+.btn-danger:hover:not(:disabled) {
+  color: #ffffff;
+  background-color: var(--gb-red-hover, #be123c);
+  border-color: var(--gb-red-hover, #be123c);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.5);
+}
+
+/* Botón Pequeño (.btn-sm) */
+.btn-sm {
+  min-height: 2.1rem;
+  padding: 0.35rem 0.85rem;
+  font-size: var(--gb-tipo-xs);
+}
+
+/* Botón Grande (.btn-lg) */
+.btn-lg {
+  min-height: 3rem;
+  padding: 0.75rem 1.75rem;
+  font-size: var(--gb-tipo-base);
+}
+
+.form-control,
+.form-select {
+  min-height: 3rem;
+  padding: 0.75rem 0.875rem;
+  background-color: var(--gb-surface);
+  border-color: var(--gb-border);
+  color: var(--gb-text);
+}
+
+.form-control::placeholder {
+  color: var(--gb-text-muted);
+  opacity: 0.75;
+}
+
+/* Al enfocar, el borde pasa a Gym Red: es el patrón del sistema para inputs. */
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--gb-surface);
+  border-color: var(--gb-red);
+  box-shadow: 0 0 0 0.2rem rgba(var(--gb-red-rgb), 0.25);
+  color: var(--gb-text);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--gb-error);
+}
+
+.form-label {
+  font-size: var(--gb-tipo-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--gb-text-muted);
+}
+
+.alert-danger {
+  --bs-alert-color: var(--gb-error);
+  --bs-alert-bg: rgba(var(--gb-red-rgb), 0.12);
+  --bs-alert-border-color: rgba(var(--gb-red-rgb), 0.5);
+}
+
+/* Página suelta centrada en pantalla: acceso, 404 y futuras pantallas de error. */
+.gb-centrado-pantalla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--gb-margen) var(--gb-espacio);
+}
+
+/* Contenedor base del panel: capa 1 con borde metálico, sin sombra difusa. */
+.gb-tarjeta {
+  background-color: var(--gb-surface);
+  border: 1px solid var(--gb-border);
+  border-radius: var(--gb-radius);
+  box-shadow: var(--gb-relieve);
+}
+
+.gb-boton-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--gb-radius-lg);
+  color: var(--gb-text-soft);
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.gb-boton-icono:hover {
+  background-color: var(--gb-surface-high);
+  border-color: var(--gb-border);
+  color: var(--gb-text);
+}
+
+/*
+  Textos del menú lateral que desaparecen a la vista cuando el menú se contrae,
+  pero siguen siendo el nombre accesible de cada enlace.
+
+  Se aplica en dos situaciones: cuando el usuario contrae el menú (la clase la
+  pone el layout) y cuando la ventana es demasiado estrecha para el menú ancho.
+  Es una regla global a propósito: tiene que atravesar los <style scoped> de
+  AppSidebar y SidebarNavItem.
+*/
+.gb-panel--compacto .gb-oculto-al-contraer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 64rem) {
+  .gb-oculto-al-contraer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Etiqueta técnica en mayúsculas: cabeceras de tabla, rótulos de métricas. */
+.gb-etiqueta {
+  font-size: var(--gb-tipo-xs);
+  font-weight: 700;
+  line-height: 1rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--gb-text-muted);
+}

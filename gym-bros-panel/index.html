@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content="Panel administrativo de Gym Bros." />
+    <meta name="theme-color" content="#131313" />
+    <!--
+      Inter y Montserrat se sirven desde el propio dominio en WOFF2
+      (ver src/assets/styles/base.css). No se enlaza fonts.googleapis.com:
+      cargaba las mismas dos familias por segunda vez, añadía una petición a un
+      tercero desde un panel administrativo y sus @font-face ni siquiera ganaban
+      la cascada frente a los locales.
+    -->
+    <title>Gym Bros</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

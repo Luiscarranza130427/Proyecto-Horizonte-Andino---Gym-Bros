@@ -1,0 +1,803 @@
+{
+    "data": {
+        "id": 3,
+        "nombre": "Rutina salud",
+        "descripcion": "Generada por reglas v1. Evaluacion 3. Actividad: moderadamente_activo.",
+        "objetivo": "salud",
+        "dias_semana": 2,
+        "duracion_estimada": 33,
+        "fecha_inicio": "2026-09-14",
+        "fecha_fin": "2026-10-11",
+        "estado": true,
+        "id_usuarios": 1,
+        "ejercicios": [
+            {
+                "id": 6,
+                "dia": 1,
+                "orden": 1,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                "id_rutinas": 3,
+                "id_ejercicios": 1,
+                "ejercicio": {
+                    "id": 1,
+                    "nombre": "Press banca",
+                    "descripcion": "Ejercicio basico de empuje para pecho.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Mantener escapulas retraidas, bajar controlado y empujar sin despegar la espalda.",
+                    "nivel": "intermedio",
+                    "equipamiento": "barra y banco",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/press-banca",
+                    "imagen_ejercicio": "ejercicios/press-banca.jpg",
+                    "id_grupos_musculares": 1,
+                    "grupomuscular": {
+                        "id": 1,
+                        "descripcion": "Musculos del pecho para empuje horizontal.",
+                        "estado": 1,
+                        "tipo": "pecho"
+                    }
+                }
+            },
+            {
+                "id": 7,
+                "dia": 1,
+                "orden": 2,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                "id_rutinas": 3,
+                "id_ejercicios": 2,
+                "ejercicio": {
+                    "id": 2,
+                    "nombre": "Remo con polea",
+                    "descripcion": "Ejercicio de traccion para espalda.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Tirar la polea hacia el abdomen manteniendo el torso estable.",
+                    "nivel": "principiante",
+                    "equipamiento": "polea",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/remo-polea",
+                    "imagen_ejercicio": "ejercicios/remo-polea.jpg",
+                    "id_grupos_musculares": 2,
+                    "grupomuscular": {
+                        "id": 2,
+                        "descripcion": "Musculos de espalda para traccion.",
+                        "estado": 1,
+                        "tipo": "espalda"
+                    }
+                }
+            },
+            {
+                "id": 8,
+                "dia": 1,
+                "orden": 3,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                "id_rutinas": 3,
+                "id_ejercicios": 3,
+                "ejercicio": {
+                    "id": 3,
+                    "nombre": "Sentadilla goblet",
+                    "descripcion": "Ejercicio para piernas con mancuerna.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Bajar manteniendo rodillas alineadas y pecho arriba.",
+                    "nivel": "principiante",
+                    "equipamiento": "mancuerna",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/sentadilla-goblet",
+                    "imagen_ejercicio": "ejercicios/sentadilla-goblet.jpg",
+                    "id_grupos_musculares": 3,
+                    "grupomuscular": {
+                        "id": 3,
+                        "descripcion": "Musculos del tren inferior enfocados en cuadriceps.",
+                        "estado": 1,
+                        "tipo": "cuadriceps"
+                    }
+                }
+            },
+            {
+                "id": 9,
+                "dia": 1,
+                "orden": 4,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                "id_rutinas": 3,
+                "id_ejercicios": 10,
+                "ejercicio": {
+                    "id": 10,
+                    "nombre": "Peso muerto rumano",
+                    "descripcion": "Ejercicio dominante de cadera para cadena posterior.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Flexionar ligeramente rodillas, llevar la cadera atras y mantener la espalda neutra durante todo el recorrido.",
+                    "nivel": "intermedio",
+                    "equipamiento": "barra",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/peso-muerto-rumano",
+                    "imagen_ejercicio": "ejercicios/peso-muerto-rumano.webp",
+                    "id_grupos_musculares": 8,
+                    "grupomuscular": {
+                        "id": 8,
+                        "descripcion": "Trabajo principal de isquiotibiales.",
+                        "estado": 1,
+                        "tipo": "isquitiobiales"
+                    }
+                }
+            },
+            {
+                "id": 10,
+                "dia": 1,
+                "orden": 5,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                "id_rutinas": 3,
+                "id_ejercicios": 17,
+                "ejercicio": {
+                    "id": 17,
+                    "nombre": "Press militar con barra",
+                    "descripcion": "Ejercicio de empuje vertical para hombros.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Empujar la barra sobre la cabeza manteniendo el abdomen firme y la trayectoria controlada.",
+                    "nivel": "intermedio",
+                    "equipamiento": "barra",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/press-militar-barra",
+                    "imagen_ejercicio": "ejercicios/press-militar-barra.webp",
+                    "id_grupos_musculares": 5,
+                    "grupomuscular": {
+                        "id": 5,
+                        "descripcion": "Trabajo principal de hombros y deltoides.",
+                        "estado": 1,
+                        "tipo": "hombros"
+                    }
+                }
+            },
+            {
+                "id": 11,
+                "dia": 1,
+                "orden": 6,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                "id_rutinas": 3,
+                "id_ejercicios": 25,
+                "ejercicio": {
+                    "id": 25,
+                    "nombre": "Abdominal crunch",
+                    "descripcion": "Ejercicio basico para abdomen.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Elevar el torso contrayendo abdomen sin tirar del cuello.",
+                    "nivel": "principiante",
+                    "equipamiento": "colchoneta",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/abdominal-crunch",
+                    "imagen_ejercicio": "ejercicios/abdominal-crunch.webp",
+                    "id_grupos_musculares": 4,
+                    "grupomuscular": {
+                        "id": 4,
+                        "descripcion": "Zona media y estabilidad del core.",
+                        "estado": 1,
+                        "tipo": "abdomen"
+                    }
+                }
+            },
+            {
+                "id": 12,
+                "dia": 2,
+                "orden": 1,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                "id_rutinas": 3,
+                "id_ejercicios": 5,
+                "ejercicio": {
+                    "id": 5,
+                    "nombre": "Press inclinado con mancuernas",
+                    "descripcion": "Ejercicio de empuje enfocado en la parte superior del pecho.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Ajustar el banco inclinado, bajar las mancuernas con control y empujar sin bloquear agresivamente los codos.",
+                    "nivel": "intermedio",
+                    "equipamiento": "mancuernas y banco",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/press-inclinado-mancuernas",
+                    "imagen_ejercicio": "ejercicios/press-inclinado-mancuernas.webp",
+                    "id_grupos_musculares": 1,
+                    "grupomuscular": {
+                        "id": 1,
+                        "descripcion": "Musculos del pecho para empuje horizontal.",
+                        "estado": 1,
+                        "tipo": "pecho"
+                    }
+                }
+            },
+            {
+                "id": 13,
+                "dia": 2,
+                "orden": 2,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                "id_rutinas": 3,
+                "id_ejercicios": 8,
+                "ejercicio": {
+                    "id": 8,
+                    "nombre": "Jalon al pecho",
+                    "descripcion": "Ejercicio de traccion vertical para espalda.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Tirar la barra hacia la parte alta del pecho manteniendo los hombros abajo y el torso estable.",
+                    "nivel": "principiante",
+                    "equipamiento": "polea alta",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/jalon-pecho",
+                    "imagen_ejercicio": "ejercicios/jalon-pecho.webp",
+                    "id_grupos_musculares": 2,
+                    "grupomuscular": {
+                        "id": 2,
+                        "descripcion": "Musculos de espalda para traccion.",
+                        "estado": 1,
+                        "tipo": "espalda"
+                    }
+                }
+            },
+            {
+                "id": 14,
+                "dia": 2,
+                "orden": 3,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                "id_rutinas": 3,
+                "id_ejercicios": 11,
+                "ejercicio": {
+                    "id": 11,
+                    "nombre": "Prensa de piernas",
+                    "descripcion": "Ejercicio de tren inferior con maquina.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Ubicar los pies firmes, bajar con control y empujar sin despegar la cadera del asiento.",
+                    "nivel": "principiante",
+                    "equipamiento": "prensa",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/prensa-piernas",
+                    "imagen_ejercicio": "ejercicios/prensa-piernas.webp",
+                    "id_grupos_musculares": 3,
+                    "grupomuscular": {
+                        "id": 3,
+                        "descripcion": "Musculos del tren inferior enfocados en cuadriceps.",
+                        "estado": 1,
+                        "tipo": "cuadriceps"
+                    }
+                }
+            },
+            {
+                "id": 15,
+                "dia": 2,
+                "orden": 4,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                "id_rutinas": 3,
+                "id_ejercicios": 13,
+                "ejercicio": {
+                    "id": 13,
+                    "nombre": "Curl femoral acostado",
+                    "descripcion": "Ejercicio de aislamiento para isquiotibiales.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Flexionar rodillas llevando el rodillo hacia los gluteos y controlar la fase de bajada.",
+                    "nivel": "principiante",
+                    "equipamiento": "maquina curl femoral",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/curl-femoral-acostado",
+                    "imagen_ejercicio": "ejercicios/curl-femoral-acostado.webp",
+                    "id_grupos_musculares": 8,
+                    "grupomuscular": {
+                        "id": 8,
+                        "descripcion": "Trabajo principal de isquiotibiales.",
+                        "estado": 1,
+                        "tipo": "isquitiobiales"
+                    }
+                }
+            },
+            {
+                "id": 16,
+                "dia": 2,
+                "orden": 5,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                "id_rutinas": 3,
+                "id_ejercicios": 18,
+                "ejercicio": {
+                    "id": 18,
+                    "nombre": "Elevaciones laterales",
+                    "descripcion": "Ejercicio de aislamiento para deltoides lateral.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Elevar las mancuernas hasta la altura de los hombros sin balancear el cuerpo.",
+                    "nivel": "principiante",
+                    "equipamiento": "mancuernas",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/elevaciones-laterales",
+                    "imagen_ejercicio": "ejercicios/elevaciones-laterales.webp",
+                    "id_grupos_musculares": 5,
+                    "grupomuscular": {
+                        "id": 5,
+                        "descripcion": "Trabajo principal de hombros y deltoides.",
+                        "estado": 1,
+                        "tipo": "hombros"
+                    }
+                }
+            },
+            {
+                "id": 17,
+                "dia": 2,
+                "orden": 6,
+                "series": 3,
+                "repeticiones": 10,
+                "peso": "0.00",
+                "descanso_segundos": 60,
+                "tiempo_segundos": 240,
+                "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                "id_rutinas": 3,
+                "id_ejercicios": 26,
+                "ejercicio": {
+                    "id": 26,
+                    "nombre": "Elevacion de piernas",
+                    "descripcion": "Ejercicio para abdomen inferior.",
+                    "tipo": "fuerza",
+                    "instrucciones": "Elevar piernas manteniendo la zona lumbar controlada y bajar lentamente.",
+                    "nivel": "intermedio",
+                    "equipamiento": "barra o banco",
+                    "estado": 1,
+                    "enlace_video": "https://videos.test/elevacion-piernas",
+                    "imagen_ejercicio": "ejercicios/elevacion-piernas.webp",
+                    "id_grupos_musculares": 4,
+                    "grupomuscular": {
+                        "id": 4,
+                        "descripcion": "Zona media y estabilidad del core.",
+                        "estado": 1,
+                        "tipo": "abdomen"
+                    }
+                }
+            }
+        ],
+        "sesiones": [
+            {
+                "dia": 1,
+                "dia_semana": "Lunes",
+                "duracion_estimada_segundos": 1965,
+                "ejercicios": [
+                    {
+                        "id": 6,
+                        "dia": 1,
+                        "orden": 1,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 1,
+                        "ejercicio": {
+                            "id": 1,
+                            "nombre": "Press banca",
+                            "descripcion": "Ejercicio basico de empuje para pecho.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Mantener escapulas retraidas, bajar controlado y empujar sin despegar la espalda.",
+                            "nivel": "intermedio",
+                            "equipamiento": "barra y banco",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/press-banca",
+                            "imagen_ejercicio": "ejercicios/press-banca.jpg",
+                            "id_grupos_musculares": 1,
+                            "grupomuscular": {
+                                "id": 1,
+                                "descripcion": "Musculos del pecho para empuje horizontal.",
+                                "estado": 1,
+                                "tipo": "pecho"
+                            }
+                        }
+                    },
+                    {
+                        "id": 7,
+                        "dia": 1,
+                        "orden": 2,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 2,
+                        "ejercicio": {
+                            "id": 2,
+                            "nombre": "Remo con polea",
+                            "descripcion": "Ejercicio de traccion para espalda.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Tirar la polea hacia el abdomen manteniendo el torso estable.",
+                            "nivel": "principiante",
+                            "equipamiento": "polea",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/remo-polea",
+                            "imagen_ejercicio": "ejercicios/remo-polea.jpg",
+                            "id_grupos_musculares": 2,
+                            "grupomuscular": {
+                                "id": 2,
+                                "descripcion": "Musculos de espalda para traccion.",
+                                "estado": 1,
+                                "tipo": "espalda"
+                            }
+                        }
+                    },
+                    {
+                        "id": 8,
+                        "dia": 1,
+                        "orden": 3,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 3,
+                        "ejercicio": {
+                            "id": 3,
+                            "nombre": "Sentadilla goblet",
+                            "descripcion": "Ejercicio para piernas con mancuerna.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Bajar manteniendo rodillas alineadas y pecho arriba.",
+                            "nivel": "principiante",
+                            "equipamiento": "mancuerna",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/sentadilla-goblet",
+                            "imagen_ejercicio": "ejercicios/sentadilla-goblet.jpg",
+                            "id_grupos_musculares": 3,
+                            "grupomuscular": {
+                                "id": 3,
+                                "descripcion": "Musculos del tren inferior enfocados en cuadriceps.",
+                                "estado": 1,
+                                "tipo": "cuadriceps"
+                            }
+                        }
+                    },
+                    {
+                        "id": 9,
+                        "dia": 1,
+                        "orden": 4,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 10,
+                        "ejercicio": {
+                            "id": 10,
+                            "nombre": "Peso muerto rumano",
+                            "descripcion": "Ejercicio dominante de cadera para cadena posterior.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Flexionar ligeramente rodillas, llevar la cadera atras y mantener la espalda neutra durante todo el recorrido.",
+                            "nivel": "intermedio",
+                            "equipamiento": "barra",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/peso-muerto-rumano",
+                            "imagen_ejercicio": "ejercicios/peso-muerto-rumano.webp",
+                            "id_grupos_musculares": 8,
+                            "grupomuscular": {
+                                "id": 8,
+                                "descripcion": "Trabajo principal de isquiotibiales.",
+                                "estado": 1,
+                                "tipo": "isquitiobiales"
+                            }
+                        }
+                    },
+                    {
+                        "id": 10,
+                        "dia": 1,
+                        "orden": 5,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 17,
+                        "ejercicio": {
+                            "id": 17,
+                            "nombre": "Press militar con barra",
+                            "descripcion": "Ejercicio de empuje vertical para hombros.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Empujar la barra sobre la cabeza manteniendo el abdomen firme y la trayectoria controlada.",
+                            "nivel": "intermedio",
+                            "equipamiento": "barra",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/press-militar-barra",
+                            "imagen_ejercicio": "ejercicios/press-militar-barra.webp",
+                            "id_grupos_musculares": 5,
+                            "grupomuscular": {
+                                "id": 5,
+                                "descripcion": "Trabajo principal de hombros y deltoides.",
+                                "estado": 1,
+                                "tipo": "hombros"
+                            }
+                        }
+                    },
+                    {
+                        "id": 11,
+                        "dia": 1,
+                        "orden": 6,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Lunes.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 25,
+                        "ejercicio": {
+                            "id": 25,
+                            "nombre": "Abdominal crunch",
+                            "descripcion": "Ejercicio basico para abdomen.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Elevar el torso contrayendo abdomen sin tirar del cuello.",
+                            "nivel": "principiante",
+                            "equipamiento": "colchoneta",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/abdominal-crunch",
+                            "imagen_ejercicio": "ejercicios/abdominal-crunch.webp",
+                            "id_grupos_musculares": 4,
+                            "grupomuscular": {
+                                "id": 4,
+                                "descripcion": "Zona media y estabilidad del core.",
+                                "estado": 1,
+                                "tipo": "abdomen"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "dia": 2,
+                "dia_semana": "Jueves",
+                "duracion_estimada_segundos": 1965,
+                "ejercicios": [
+                    {
+                        "id": 12,
+                        "dia": 2,
+                        "orden": 1,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 5,
+                        "ejercicio": {
+                            "id": 5,
+                            "nombre": "Press inclinado con mancuernas",
+                            "descripcion": "Ejercicio de empuje enfocado en la parte superior del pecho.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Ajustar el banco inclinado, bajar las mancuernas con control y empujar sin bloquear agresivamente los codos.",
+                            "nivel": "intermedio",
+                            "equipamiento": "mancuernas y banco",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/press-inclinado-mancuernas",
+                            "imagen_ejercicio": "ejercicios/press-inclinado-mancuernas.webp",
+                            "id_grupos_musculares": 1,
+                            "grupomuscular": {
+                                "id": 1,
+                                "descripcion": "Musculos del pecho para empuje horizontal.",
+                                "estado": 1,
+                                "tipo": "pecho"
+                            }
+                        }
+                    },
+                    {
+                        "id": 13,
+                        "dia": 2,
+                        "orden": 2,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 8,
+                        "ejercicio": {
+                            "id": 8,
+                            "nombre": "Jalon al pecho",
+                            "descripcion": "Ejercicio de traccion vertical para espalda.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Tirar la barra hacia la parte alta del pecho manteniendo los hombros abajo y el torso estable.",
+                            "nivel": "principiante",
+                            "equipamiento": "polea alta",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/jalon-pecho",
+                            "imagen_ejercicio": "ejercicios/jalon-pecho.webp",
+                            "id_grupos_musculares": 2,
+                            "grupomuscular": {
+                                "id": 2,
+                                "descripcion": "Musculos de espalda para traccion.",
+                                "estado": 1,
+                                "tipo": "espalda"
+                            }
+                        }
+                    },
+                    {
+                        "id": 14,
+                        "dia": 2,
+                        "orden": 3,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 11,
+                        "ejercicio": {
+                            "id": 11,
+                            "nombre": "Prensa de piernas",
+                            "descripcion": "Ejercicio de tren inferior con maquina.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Ubicar los pies firmes, bajar con control y empujar sin despegar la cadera del asiento.",
+                            "nivel": "principiante",
+                            "equipamiento": "prensa",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/prensa-piernas",
+                            "imagen_ejercicio": "ejercicios/prensa-piernas.webp",
+                            "id_grupos_musculares": 3,
+                            "grupomuscular": {
+                                "id": 3,
+                                "descripcion": "Musculos del tren inferior enfocados en cuadriceps.",
+                                "estado": 1,
+                                "tipo": "cuadriceps"
+                            }
+                        }
+                    },
+                    {
+                        "id": 15,
+                        "dia": 2,
+                        "orden": 4,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 13,
+                        "ejercicio": {
+                            "id": 13,
+                            "nombre": "Curl femoral acostado",
+                            "descripcion": "Ejercicio de aislamiento para isquiotibiales.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Flexionar rodillas llevando el rodillo hacia los gluteos y controlar la fase de bajada.",
+                            "nivel": "principiante",
+                            "equipamiento": "maquina curl femoral",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/curl-femoral-acostado",
+                            "imagen_ejercicio": "ejercicios/curl-femoral-acostado.webp",
+                            "id_grupos_musculares": 8,
+                            "grupomuscular": {
+                                "id": 8,
+                                "descripcion": "Trabajo principal de isquiotibiales.",
+                                "estado": 1,
+                                "tipo": "isquitiobiales"
+                            }
+                        }
+                    },
+                    {
+                        "id": 16,
+                        "dia": 2,
+                        "orden": 5,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 18,
+                        "ejercicio": {
+                            "id": 18,
+                            "nombre": "Elevaciones laterales",
+                            "descripcion": "Ejercicio de aislamiento para deltoides lateral.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Elevar las mancuernas hasta la altura de los hombros sin balancear el cuerpo.",
+                            "nivel": "principiante",
+                            "equipamiento": "mancuernas",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/elevaciones-laterales",
+                            "imagen_ejercicio": "ejercicios/elevaciones-laterales.webp",
+                            "id_grupos_musculares": 5,
+                            "grupomuscular": {
+                                "id": 5,
+                                "descripcion": "Trabajo principal de hombros y deltoides.",
+                                "estado": 1,
+                                "tipo": "hombros"
+                            }
+                        }
+                    },
+                    {
+                        "id": 17,
+                        "dia": 2,
+                        "orden": 6,
+                        "series": 3,
+                        "repeticiones": 10,
+                        "peso": "0.00",
+                        "descanso_segundos": 60,
+                        "tiempo_segundos": 240,
+                        "notas": "Peso pendiente de asignacion por el entrenador. Dia semanal: Jueves.",
+                        "id_rutinas": 3,
+                        "id_ejercicios": 26,
+                        "ejercicio": {
+                            "id": 26,
+                            "nombre": "Elevacion de piernas",
+                            "descripcion": "Ejercicio para abdomen inferior.",
+                            "tipo": "fuerza",
+                            "instrucciones": "Elevar piernas manteniendo la zona lumbar controlada y bajar lentamente.",
+                            "nivel": "intermedio",
+                            "equipamiento": "barra o banco",
+                            "estado": 1,
+                            "enlace_video": "https://videos.test/elevacion-piernas",
+                            "imagen_ejercicio": "ejercicios/elevacion-piernas.webp",
+                            "id_grupos_musculares": 4,
+                            "grupomuscular": {
+                                "id": 4,
+                                "descripcion": "Zona media y estabilidad del core.",
+                                "estado": 1,
+                                "tipo": "abdomen"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "advertencias": [
+            "Parametros iniciales: requieren revision del entrenador. El peso queda pendiente de asignacion."
+        ]
+    }
+}

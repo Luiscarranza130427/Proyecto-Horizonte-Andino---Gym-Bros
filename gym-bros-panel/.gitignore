@@ -1,0 +1,40 @@
+# Dependencias y artefactos de compilación
+node_modules
+dist
+dist-ssr
+coverage
+*.local
+
+# Variables de entorno: sólo se versiona el ejemplo.
+# Nunca subir claves, tokens ni credenciales reales al repositorio.
+.env
+.env.*
+!.env.example
+
+# Exports de diseño descargados (referencia local, no se versionan:
+# los valores ya están extraídos en src/assets/styles/_variables.css)
+*.zip
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.exe
+.idea
+*.suo
+*.sw?
+.vscode/*
+!.vscode/extensions.json
+
+# Evidencia de QA visual: capturas regenerables (7,8 MB en PNG). Se quedan en
+# disco para consultarlas, pero no en el historial: Git conserva cada versión
+# de un binario para siempre y esto no es código ni documentación.
+design-qa-evidence/

@@ -1,0 +1,13 @@
+{
+  "dart.flutterSdkPath": "C:\\Users\\pimpi\\develop\\flutter",
+  "dart.openDevTools": "flutter",
+  "terminal.integrated.env.windows": {
+    "JAVA_HOME": "C:\\Program Files\\Java\\jdk-17",
+    "ANDROID_SDK_ROOT": "C:\\Users\\pimpi\\AppData\\Local\\Android\\Sdk",
+    "ANDROID_HOME": "C:\\Users\\pimpi\\AppData\\Local\\Android\\Sdk",
+    "PATH": "C:\\Users\\pimpi\\develop\\flutter\\bin;C:\\Users\\pimpi\\AppData\\Local\\Android\\Sdk\\platform-tools;C:\\Users\\pimpi\\AppData\\Local\\Android\\Sdk\\cmdline-tools\\latest\\bin;C:\\Program Files\\Java\\jdk-17\\bin;${env:PATH}"
+  },
+  "dart.sdkPath": "C:\\Users\\pimpi\\develop\\flutter\\bin\\cache\\dart-sdk",
+  "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-17",
+  "dart.flutterHotReloadOnSave": "all"
+}

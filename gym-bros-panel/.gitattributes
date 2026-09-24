@@ -1,0 +1,23 @@
+# Finales de línea
+#
+# El repositorio guarda SIEMPRE LF y lo entrega SIEMPRE en LF, también en
+# Windows. Sin esto, `core.autocrlf=true` (el valor de esta máquina) escribiría
+# CRLF en la copia de trabajo y chocaría con `end_of_line = lf` de .editorconfig
+# y con `"endOfLine": "lf"` de .prettierrc.json: `npm run format:check` marcaría
+# todos los archivos y cada diff entre Windows y Linux sería el fichero entero.
+* text=auto eol=lf
+
+# Binarios: nunca convertir ni intentar diferenciar por líneas.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.svg   text eol=lf
+*.ttf   binary
+*.woff  binary
+*.woff2 binary
+*.zip   binary
+*.ico   binary
+
+# Ruido fuera de las revisiones: es un fichero generado por npm.
+package-lock.json -diff linguist-generated

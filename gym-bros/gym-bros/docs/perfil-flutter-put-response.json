@@ -1,0 +1,54 @@
+{
+    "data": {
+        "id": 4,
+        "id_usuarios": 6,
+        "sexo_calculo": "masculino",
+        "embarazo": false,
+        "lactancia": false,
+        "requiere_plan_clinico": false,
+        "apto_plan_general": true,
+        "revision_profesional": null,
+        "revisado_en": null,
+        "created_at": "2026-09-12T21:47:51.000000Z",
+        "updated_at": "2026-09-12T21:47:51.000000Z",
+        "restricciones": [],
+        "preferencias": [
+            {
+                "id": 59,
+                "activo": 1,
+                "id_usuarios": 6,
+                "id_alimentos": 57,
+                "created_at": "2026-09-12T21:47:51.000000Z",
+                "updated_at": "2026-09-12T21:47:51.000000Z",
+                "tipo": "preferido"
+            },
+            {
+                "id": 61,
+                "activo": 1,
+                "id_usuarios": 6,
+                "id_alimentos": 70,
+                "created_at": "2026-09-12T21:47:51.000000Z",
+                "updated_at": "2026-09-12T21:47:51.000000Z",
+                "tipo": "rechazado"
+            },
+            {
+                "id": 62,
+                "activo": 1,
+                "id_usuarios": 6,
+                "id_alimentos": 71,
+                "created_at": "2026-09-12T21:47:51.000000Z",
+                "updated_at": "2026-09-12T21:47:51.000000Z",
+                "tipo": "rechazado"
+            },
+            {
+                "id": 60,
+                "activo": 1,
+                "id_usuarios": 6,
+                "id_alimentos": 72,
+                "created_at": "2026-09-12T21:47:51.000000Z",
+                "updated_at": "2026-09-12T21:47:51.000000Z",
+                "tipo": "rechazado"
+            }
+        ]
+    }
+}

@@ -1,0 +1,74 @@
+# Verificación automática de cada cambio.
+#
+# Existe por un motivo concreto: al fusionar dos ramas, Git apiló sin marcar
+# conflicto dos declaraciones `const cargarMock` y dejó `main` con un
+# SyntaxError durante varios minutos. `npm run lint` lo detectaba en segundos,
+# pero nadie lo ejecutó entre la fusión y el descubrimiento. Esto lo ejecuta
+# siempre, antes de que el problema llegue a `main`.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push nuevo sobre la misma rama cancela la ejecución anterior: no tiene
+# sentido gastar minutos verificando un commit que ya ha sido reemplazado.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, pruebas y build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          # Coincide con el campo `engines` de package.json.
+          node-version: '22'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Detecta, entre otras cosas, declaraciones duplicadas tras una fusión:
+      # ESLint las reporta como «Parsing error: Identifier has already been
+      # declared». Es la comprobación más barata y la que más rápido falla.
+      - name: Lint
+        run: npm run lint
+
+      - name: Formato
+        run: npm run format:check
+
+      - name: Pruebas con cobertura
+        run: npm run test:coverage
+
+      - name: Build de producción
+        run: npm run build
+        env:
+          VITE_USE_MOCKS: 'false'
+
+      # Guardián del hallazgo #8. Un import estático de `@/mocks` volvería a
+      # meter datos simulados y credenciales de demostración en el bundle
+      # público, y no lo notaría nadie: la aplicación seguiría funcionando.
+      - name: Comprobar que no se filtran datos simulados al bundle
+        run: |
+          echo "Buscando datos de mock en dist/…"
+          fallos=0
+          for patron in "token-simulado-de-desarrollo" "admin@gymbros.test" "password123" "Power Gym" "Administrador Demo"; do
+            if grep -rl "$patron" dist/ >/dev/null 2>&1; then
+              echo "::error::'$patron' aparece en el build de producción."
+              grep -rl "$patron" dist/ | sed 's/^/    /'
+              fallos=1
+            fi
+          done
+          if [ "$fallos" -eq 1 ]; then
+            echo "Los mocks deben cargarse con import() dinámico dentro de if (USE_MOCKS)."
+            exit 1
+          fi
+          echo "Limpio: ningún dato simulado en dist/."

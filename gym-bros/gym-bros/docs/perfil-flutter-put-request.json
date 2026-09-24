@@ -1,0 +1,19 @@
+{
+    "sexo_calculo": "masculino",
+    "embarazo": false,
+    "lactancia": false,
+    "requiere_plan_clinico": false,
+    "apto_plan_general": true,
+    "preferencias": [
+        {
+            "id_alimentos": 57,
+            "tipo": "preferido"
+        },
+        {
+            "id_alimentos": 72,
+            "tipo": "rechazado"
+        }
+    ],
+    "alergias": [],
+    "intolerancias": []
+}

@@ -1,0 +1,41 @@
+/*
+ * Bootstrap 5.3, sólo las piezas que este panel usa.
+ *
+ * Antes se importaba `bootstrap/dist/css/bootstrap.min.css` entero: 310 KB para
+ * una docena de clases. El resto —rejilla, modales, carrusel, offcanvas,
+ * acordeón, navbar, dropdowns, tablas, paginación, tooltips…— se descargaba en
+ * cada carga sin que nada lo utilizara. Gym Bros ya tiene su propio sistema de
+ * diseño en `_variables.css`; de Bootstrap sólo se aprovechan los controles.
+ *
+ * Inventario real de clases de Bootstrap en `src/` (el resto son propias):
+ *   btn · btn-primary · btn-danger · btn-outline-danger  -> buttons
+ *   form-control · form-select · form-label · is-invalid -> forms
+ *   alert · alert-danger                                 -> alert
+ *   spinner-border · spinner-border-sm                    -> spinners
+ *   visually-hidden                                       -> helpers/visually-hidden
+ *
+ * ANTES DE USAR UNA CLASE NUEVA DE BOOTSTRAP hay que añadir aquí su parcial, o
+ * no existirá. Si algo se ve sin estilo, es lo primero que hay que mirar.
+ *
+ * No se incluye la API de utilidades (`utilities/api`) porque genera cientos de
+ * clases y aquí no se usaba ninguna.
+ */
+
+/* Base obligatoria: funciones, variables y mixins que necesitan los parciales. */
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/variables-dark';
+@import 'bootstrap/scss/maps';
+@import 'bootstrap/scss/mixins';
+
+/* Variables CSS de Bootstrap y su variante oscura (index.html declara
+   data-bs-theme="dark"), más la normalización de elementos. */
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+
+/* Componentes en uso. */
+@import 'bootstrap/scss/buttons';
+@import 'bootstrap/scss/forms';
+@import 'bootstrap/scss/alert';
+@import 'bootstrap/scss/spinners';
+@import 'bootstrap/scss/helpers/visually-hidden';

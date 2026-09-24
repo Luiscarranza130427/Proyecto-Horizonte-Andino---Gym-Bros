@@ -1,0 +1,164 @@
+/*
+ * Fuentes autoalojadas en WOFF2, subconjuntadas al rango latino (el mismo que
+ * sirve Google Fonts: cubre todo el español, comillas, guiones largos y €).
+ *
+ * Se sirven desde el propio dominio a propósito: antes se cargaban DOS veces,
+ * una desde fonts.googleapis.com y otra desde aquí en TTF. Eso costaba una
+ * petición a un tercero (con lo que implica de privacidad en un panel
+ * administrativo) y 1,5 MB de TTF que ganaban la cascada. Ahora son 184 KB.
+ *
+ * Para regenerarlas desde un .ttf hace falta fonttools + brotli:
+ *   pyftsubset FUENTE.ttf --unicodes=U+0000-00FF,U+0100-024F,...  *     --layout-features=kern,liga,clig,calt,tnum --flavor=woff2
+ */
+@font-face {
+  font-family: 'Inter';
+  src: url('@/assets/fonts/inter-400.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('@/assets/fonts/inter-600.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('@/assets/fonts/inter-700.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('@/assets/fonts/montserrat-700.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('@/assets/fonts/montserrat-800.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('@/assets/fonts/montserrat-900.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+/**
+ * Estilos base de elementos HTML. Complementan a Bootstrap: aquí sólo va lo
+ * transversal (tipografía, foco visible, enlace de salto). Los estilos de un
+ * componente concreto viven en su propio <style scoped>.
+ */
+
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--gb-bg);
+  color: var(--gb-text);
+  font-family: var(--gb-fuente-texto);
+  font-size: var(--gb-tipo-base);
+  line-height: 1.5;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+::selection {
+  background-color: var(--gb-red);
+  color: var(--gb-on-red);
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--gb-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--gb-border);
+  border-radius: var(--gb-radius-pill);
+}
+
+/* Los títulos son la "voz de mando" del sistema: Montserrat y trazo pesado. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--gb-fuente-titulo);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* Foco siempre visible: imprescindible para navegar con teclado. */
+:focus-visible {
+  outline: 2px solid var(--gb-focus);
+  outline-offset: 2px;
+}
+
+/* Un contenedor con tabindex="-1" no debe dibujar contorno al recibir foco
+   mediante el enlace de salto. */
+[tabindex='-1']:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Enlace de salto al contenido: oculto hasta que recibe el foco. */
+.gb-salto-contenido {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1080;
+  padding: 0.625rem 1rem;
+  background-color: var(--gb-surface-high);
+  color: var(--gb-text);
+  font-weight: 600;
+  border: 1px solid var(--gb-border);
+  border-radius: 0 0 var(--gb-radius) 0;
+  transform: translateY(-120%);
+}
+
+.gb-salto-contenido:focus {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

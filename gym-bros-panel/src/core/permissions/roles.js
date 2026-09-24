@@ -1,0 +1,86 @@
+import { PERMISOS } from '@/core/permissions/permissions'
+
+/**
+ * Roles del sistema y matriz de asignación de permisos RBAC.
+ */
+export const ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  TENANT_ADMIN: 'tenant_admin',
+  ADMIN: 'admin',
+  TRAINER: 'entrenador',
+  MEMBER: 'usuario',
+}
+
+/**
+ * La API envía `tipo_usuario` con el vocabulario del esquema (Administrador,
+ * Empresa, Entrenador, Usuario). Sin esta traducción el administrador real no
+ * encajaba en la matriz y perdía, por ejemplo, el módulo de planes.
+ */
+const ROL_DESDE_API = {
+  administrador: ROLES.SUPER_ADMIN,
+  empresa: ROLES.TENANT_ADMIN,
+  entrenador: ROLES.TRAINER,
+  usuario: ROLES.MEMBER,
+}
+
+export function normalizarRol(rol) {
+  const clave = String(rol ?? '')
+    .trim()
+    .toLowerCase()
+  if (!clave) return ROLES.MEMBER
+  if (Object.values(ROLES).includes(clave)) return clave
+  return ROL_DESDE_API[clave] ?? ROLES.MEMBER
+}
+
+export const MATRIZ_PERMISOS_ROL = {
+  [ROLES.SUPER_ADMIN]: Object.values(PERMISOS),
+
+  [ROLES.TENANT_ADMIN]: [
+    PERMISOS.USERS_READ,
+    PERMISOS.USERS_CREATE,
+    PERMISOS.USERS_UPDATE,
+    PERMISOS.USERS_DELETE,
+    PERMISOS.EXERCISES_READ,
+    PERMISOS.EXERCISES_CREATE,
+    PERMISOS.EXERCISES_UPDATE,
+    PERMISOS.EXERCISES_DELETE,
+    PERMISOS.NUTRITION_READ,
+    PERMISOS.NUTRITION_MANAGE,
+    PERMISOS.MEMBERSHIPS_READ,
+    PERMISOS.MEMBERSHIPS_MANAGE,
+    PERMISOS.NOTIFICATIONS_READ,
+    PERMISOS.NOTIFICATIONS_SEND,
+  ],
+
+  [ROLES.ADMIN]: [
+    PERMISOS.USERS_READ,
+    PERMISOS.USERS_CREATE,
+    PERMISOS.USERS_UPDATE,
+    PERMISOS.USERS_DELETE,
+    PERMISOS.EXERCISES_READ,
+    PERMISOS.EXERCISES_CREATE,
+    PERMISOS.EXERCISES_UPDATE,
+    PERMISOS.EXERCISES_DELETE,
+    PERMISOS.NUTRITION_READ,
+    PERMISOS.NUTRITION_MANAGE,
+    PERMISOS.MEMBERSHIPS_READ,
+    PERMISOS.MEMBERSHIPS_MANAGE,
+    PERMISOS.NOTIFICATIONS_READ,
+    PERMISOS.NOTIFICATIONS_SEND,
+    PERMISOS.COMPANIES_MANAGE,
+    PERMISOS.BILLING_MANAGE,
+  ],
+
+  [ROLES.TRAINER]: [
+    PERMISOS.USERS_READ,
+    PERMISOS.EXERCISES_READ,
+    PERMISOS.EXERCISES_CREATE,
+    PERMISOS.EXERCISES_UPDATE,
+    PERMISOS.NUTRITION_READ,
+    PERMISOS.NUTRITION_MANAGE,
+    PERMISOS.NOTIFICATIONS_READ,
+    PERMISOS.NOTIFICATIONS_SEND,
+  ],
+
+  [ROLES.MEMBER]: [PERMISOS.EXERCISES_READ, PERMISOS.NUTRITION_READ, PERMISOS.NOTIFICATIONS_READ],
+}
